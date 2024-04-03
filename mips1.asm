@@ -197,8 +197,7 @@ continue_add2:
 
 	
 continue_add3:
-	la $a0 , test_name	
-        jal append_patient
+
 	# Now lets take the date
 	li $v0,4
 	la $a0,take_year_msg
@@ -253,9 +252,6 @@ continue_add5:
 	li $t2, 2024            # Upper bound of the acceptable range
    	ble $t0, $t1, not_valid_year # If year is less than or equal to 2000, not valid
  	bgt $t0, $t2, not_valid_year # If year is greater than  to 2024, not valid
- 	
-        la $a0 , Year	
-        jal append_patient2
 
 	j continue_add6 # If the year is within the acceptable range, proceed to continue_add6
 
@@ -305,8 +301,6 @@ continue_add7:
     	blt $t1, $t2, invalid_month # If month is less than 1, it's invalid
     	bgt $t1, $t3, invalid_month # If month is greater than 12, it's invalid
 
-	la $a0,Month
-	jal append_patient3
     	j continue_add8                  # If the month is valid, return to the menu
 
 invalid_month:
@@ -444,135 +438,97 @@ search_by_ID:
 #---------------------------------------------------------------------------------------  	   			
  
 append_patient:
-	# Allocate space on the stack for $ra
-	addi $sp, $sp, -4  
-	# Save $ra on the stack    
-	sw   $ra, 0($sp)
-	
-	la $a1,ID
+    # Allocate space on the stack for $ra
+    addi $sp, $sp, -4  
+    # Save $ra on the stack    
+    sw   $ra, 0($sp)
+    
+    # Load address of ID into $a1
+    la $a1, ID
 loopAppend1:	
 	lb $t0,($a1)
 	beqz $t0,do_append1
 	addi $a1,$a1,1
-	j loopAppend1
-do_append1:
-	li $t0,58	# Asciii code for ':'
-	sb $t0,($a1)
-	addi $a1,$a1,1
-	li $t0,32	# Ascii code for the space
-	sb $t0,($a1)
-	addi $a1,$a1,1
-loopAppend2:
-	lb $t0,($a0)
-	sb $t0,($a1)
-	addi $a1,$a1,1
-	addi $a0,$a0,1
-	beqz $t0,finishAppend2
-	j loopAppend2
-finishAppend2:
-    	# Append a comma (',')
-    	li $t0, 44    # ASCII code for ','
-    	sb $t0, ($a1)
-    	addi $a1, $a1, 1
+	j loopAppend1   
+do_append1:	 
+    # Append a colon (':')
+    li $t0, 58    # ASCII code for ':'
+    sb $t0, ($a1)
+    addi $a1, $a1, 1
 
-	la $a0, ID
-	#Call the print_string syscall to print the ID
-	li $v0, 4          # syscall code for print_string
-	syscall
-    	# Restore $ra from the stack
-    	lw   $ra, 0($sp)
-    	# Deallocate space on the stack
-    	addi $sp, $sp, 4
-    	# Return to the caller
-    	jr   $ra
+    li $t0,32	# Ascii code for the space
+    sb $t0,($a1)
+    addi $a1,$a1,1
+    
+    # Append the test name
+    la $a0, test_name
+    jal append_string
+    
+    # Append a comma (',')
+    li $t0, 44    # ASCII code for ','
+    sb $t0, ($a1)
+    addi $a1, $a1, 1
+    
+    li $t0,32	# Ascii code for the space
+    sb $t0,($a1)
+    addi $a1,$a1,1
+    
+    # Append the year
+    la $a0, Year
+    jal append_string
+    
+    # Append a hyphen ('-')
+    li $t0, 45    # ASCII code for '-'
+    sb $t0, ($a1)
+    addi $a1, $a1, 1
+    
+    # Append the month
+    la $a0, Month
+    jal append_string
+    
+    # Append a comma (',')
+    li $t0, 44    # ASCII code for ','
+    sb $t0, ($a1)
+    addi $a1, $a1, 1
+    
+    li $t0,32	# Ascii code for the space
+    sb $t0,($a1)
+    addi $a1,$a1,1
+        
+    # Append the test result
+#  l.s $f1, test_result
+#    jal convert_float_to_string 
+#    jal append_string
+     
+    
+    # Print a newline character
+    li $v0, 11         # syscall code for print_character
+    li $a0, 10         # ASCII code for newline
+    syscall
 
-###-------------------------this method for adding year ---------------------
-append_patient2:
-	# Allocate space on the stack for $ra
-	addi $sp, $sp, -4  
-	# Save $ra on the stack    
-	sw   $ra, 0($sp)
-	
-	la $a1,ID
-loopAppend11:	
-	lb $t0,($a1)
-	beqz $t0,do_append11
-	addi $a1,$a1,1
-	j loopAppend11
-do_append11:
+    # Print the appended string (ID)
+    la $a0, ID
+    li $v0, 4          # syscall code for print_string
+    syscall
 
-	li $t0,32	# Ascii code for the space
-	sb $t0,($a1)
-	addi $a1,$a1,1
-loopAppend22:
-	lb $t0,($a0)
-	sb $t0,($a1)
-	addi $a1,$a1,1
-	addi $a0,$a0,1
-	beqz $t0,finishAppend22
-	j loopAppend22
-finishAppend22:
-    	# Append a comma ('-')
-    	li $t0, 45    # ASCII code for '-'
-    	sb $t0, ($a1)
-    	addi $a1, $a1, 1
+    # Restore $ra from the stack
+    lw   $ra, 0($sp)
+    # Deallocate space on the stack
+    addi $sp, $sp, 4
+    # Return to the caller
+    j menu
+ 
 
-	la $a0, ID
-	#Call the print_string syscall to print the ID
-	li $v0, 4          # syscall code for print_string
-	syscall
-    	# Restore $ra from the stack
-    	lw   $ra, 0($sp)
-    	# Deallocate space on the stack
-    	addi $sp, $sp, 4
-    	# Return to the caller
-    	jr   $ra
-	
-###-------------------------this method for adding Month ---------------------
-append_patient3:
-	# Allocate space on the stack for $ra
-	addi $sp, $sp, -4  
-	# Save $ra on the stack    
-	sw   $ra, 0($sp)
-	
-	la $a1,ID
-loopAppend13:	
-	lb $t0,($a1)
-	beqz $t0,do_append13
-	addi $a1,$a1,1
-	j loopAppend13
-do_append13:
-	lb $t0,($a0)
-	sb $t0,($a1)
-	addi $a1,$a1,1
-	addi $a0,$a0,1
-	beqz $t0,finishAppend3
-	j finishAppend3
+append_string:
+    lb $t0, ($a0)      # Load byte from source address
+    beqz $t0, finish_append_string   # If byte is zero, finish
+    sb $t0, ($a1)      # Store byte to destination address
+    addi $a0, $a0, 1  # Increment source address
+    addi $a1, $a1, 1  # Increment destination address
+    j append_string    # Repeat loop
 
-finishAppend3:
-   	# Append a comma (',')
-    	li $t0, 44    # ASCII code for ','
-    	sb $t0, ($a1)
-    	addi $a1, $a1, 1
-    	
-    	li $t0,32	# Ascii code for the space
-	sb $t0,($a1)
-	addi $a1,$a1,1
-	
-	la $a0, ID
-	#Call the print_string syscall to print the ID
-	li $v0, 4          # syscall code for print_string
-	syscall
-    	# Restore $ra from the stack
-    	lw   $ra, 0($sp)
-    	# Deallocate space on the stack
-    	addi $sp, $sp, 4
-    	# Return to the caller
-    	jr   $ra
-
-
-
-
+finish_append_string:
+    jr $ra             # Return
 
 
 ###----------------- This method used to append the number of choice of tests into test_name to hold the name-------------------
@@ -781,6 +737,15 @@ twoDigit:
 oneDigit:
 	addi $t8,$t8,-48
 	move $v1,$t8
+    	# Add leading zero to the month string
+    	li $t2, 48              # Load ASCII '0' into $t2
+    	sb $t2, ($a0)           # Store '0' in the month string
+    	addi $a0, $a0, 1        # Move to the next index in the month string
+
+   	 # Convert the single digit to ASCII
+    	addi $t8, $t8, 48       # Convert the single digit to ASCII
+    	sb $t8, ($a0)           # Store the single digit in the month string
+    	addi $a0, $a0, 1        # Move to the next index in the month string
 
         move $t1, $v1
 	
