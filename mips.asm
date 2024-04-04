@@ -75,6 +75,7 @@ main:
 	li $v0, 16
 	move $a0, $s0
 	syscall
+    
 	j menu	# jump to the menu
    
 #----------------------------------------------------
@@ -168,6 +169,9 @@ continue_add:
 	# Check if the ID is 7 digits only
 	la $a0,ID
 	jal check_7digits	#call the function
+			
+	la $a0,ID
+	jal remove_newline
 	
 	# If the ID is 7 digits then continue
 	beq $v1,1,continue_add2
@@ -180,9 +184,6 @@ continue_add:
 	
 continue_add2:	
 	# Now lets move to the test name
-		
-	la $a0,ID
-	jal remove_newline
 	
 	li $v0,4
 	la $a0,take_test_name
@@ -578,16 +579,21 @@ AppendToFileBuffer:
     j print_buffer
 
   end_print:
-    j menu
+    j saveToFile
 
 
 #------------------------------------------------------------------------------
 
 saveToFile:
+    # Close the file
+    li $v0, 16          # System call for close file
+    move $a0, $s0       # File descriptor
+    syscall             # Close file
+    
     # Open the file for writing with truncation
     li $v0, 13          # System call for open file
     la $a0, filename    # File name
-    li $a1, 9           # Open for write mode with truncation
+    li $a1, 1          # Open for write mode with truncation
     syscall             # Open file
     move $s0, $v0       # Save file descriptor
 
@@ -604,6 +610,8 @@ saveToFile:
     syscall             # Close file
 
     j menu              # Return
+    
+    
 ###----------------- This method used to append the number of choice of tests into test_name to hold the name-------------------
 
 append_test_name:
