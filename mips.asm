@@ -1,7 +1,7 @@
 # Here we have the data section
 .data
 # Here we put the file path as the following form
-filename: .asciiz "C:\\Users\\User\\New folder\\medical.txt"
+filename: .asciiz "C:\\Users\\Geinus\\Desktop\\Proj-Arch1Medical-Test-Management-System\\medical.txt"
 # Here we have the data section
 file_buffer: .space 1024
 
@@ -22,21 +22,25 @@ take_test_name:.asciiz"Select test name\n1- Hemoglobin (Hgb)\n2- Blood Glucose T
 take_year_msg: .asciiz"Enter the Year of the test : \n"
 take_month_msg: .asciiz"Enter the Month of the test : \n"
 take_test_result_msg: .asciiz"Enter the test result : \n"
-not_integer_msg: .asciiz"The ID must be an integer number, try again...\n"
+not_integer_msg: .asciiz"The Entered value must be an integer number, try again...\n"
 not_7digits_msg:.asciiz"The ID must be 7 digits only, try again...\n"
 not_valid_year_msg: .asciiz"Not valid year number, try again ...\n"
+not_integer_year: .asciiz"The year must be an integer number, try again...\n"
 invalid_month_msg: .asciiz"Not valid month number, try again ...\n"
+not_integer_month: .asciiz"The month must be an integer number, try again...\n"
 not_4digits_msg:.asciiz"The Year must be 4 digits only, try again...\n"
 exit_msg: .asciiz"Exitting from the program ...\n"
 invalid_test_msg: .asciiz"Out of range test result, write it again...\n"
 
 
 # buffers
+menue_space: .space 128 
+test_name: .space 128 
+test_num: .space 128 
 ID: .space 128
-test_name: .space 128
 Year: .space 128
 Month: .space 128
-test_result: .float 0.0
+test_result: .space 128
 Hgb_min: .float 1.0
 Hgb_max: .float 20.0
 BGT_min: .float 1.0
@@ -126,21 +130,40 @@ menu:
     	syscall  
     	
     	# Read a number from the user
-    	li $v0, 5                 # system call code for reading an integer
+    	li $v0, 8                # system call code for reading an integer
+    	la $a0,menue_space 
    	syscall                  # read the character from the console
- 	move $t0, $v0     # store the response in $t0 
- 	
+   	   # Store the entered value in $t5
+        move $t5, $v0        # Move the value from $v0 to $t5
+    
+   	
+   	# Check if the ID is integer
+	la $a0,menue_space 
+	la $a1,menue_space 
+	jal check_integer	#call the function
+	
+	# If the returned value ($v1) is 1 then continue
+	beq $v1,1,GO
+	
+	# If the returned value ($v1) is 0 then try again
+	li $v0,4
+	la $a0,not_integer_msg
+	syscall
+	j menu
+	
+GO:
  	# If he chose choice 1
- 	beq $t0,1, Add_test
+ 	lb $t0,($a1)
+ 	beq $t0,49, Add_test
  	# If he chose choice 2
- 	beq $t0,2,search_by_ID
+ 	beq $t0,50,search_by_ID
  	# If he entered another number then print an error message
  	li $v0,4
  	la $a0,no_such_choice
  	syscall
  	j menu 	# Go back to the menue
-	
-#-------------------------------------------------------------------------------
+ 	
+#---------------------------------------------------------------------------
 Add_test:
 	# Start adding test
 	li $v0,4
@@ -189,10 +212,26 @@ continue_add2:
 	la $a0,take_test_name
 	syscall
 	
-	li $v0,5
+
+	# Read patiant test name from the user
+	li $v0,8	# System call code for reading a string
+	la $a0, test_num	# Store the read number 
 	syscall
-	move $t0,$v0
 	
+	# Check if the ID is integer
+	la $a1,test_num
+	jal check_integer	#call the function
+	
+	# If the returned value ($v1) is 1 then continue
+	beq $v1,1,GO1
+	
+	# If the returned value ($v1) is 0 then try again
+	li $v0,4
+	la $a0,not_integer_msg
+	syscall
+	j continue_add2
+	
+GO1:	
 	j check_test_name
 
 	
@@ -217,7 +256,7 @@ continue_add3:
 	
 	# If the returned value ($v1) is 0 then try again
 	li $v0,4
-	la $a0,not_integer_msg
+	la $a0,not_integer_year
 	syscall
 	j continue_add3
 	
@@ -285,7 +324,7 @@ continue_add6:
 	
 	# If the returned value ($v1) is 0 then try again
 	li $v0,4
-	la $a0,not_integer_msg
+	la $a0,not_integer_month
 	syscall	
 	j continue_add6
 	
@@ -317,15 +356,16 @@ continue_add8:
 	li $v0,4
 	la $a0,take_test_result_msg
 	syscall
-		
-	# Read the floating-point test result from the user
-	li $v0, 6               # syscall code for read_float
+	
+	li $v0,8	# System call code for reading a string
+	la $a0, test_result	# Store the read number in ID
 	syscall
-	s.s $f0, test_result    # Store the input float in the test_result variable
 	
+	jal check_float
+		
 	jal check_result_test
-	
-	
+
+
 check_result_test:
     	la $a0, test_name    # Load the address of test_name into $a0
     	
@@ -396,10 +436,11 @@ invalid_test:
 
 #---------------------------------------------------------------------------------------
 check_test_name:
-	beq $t0,1,append_Hgb
-	beq $t0,2,append_BGT
-	beq $t0,3,append_LDL
-	beq $t0,4,append_BPT
+	lb $t0,($a1)
+	beq $t0,49,append_Hgb
+	beq $t0,50,append_BGT
+	beq $t0,51,append_LDL
+	beq $t0,52,append_BPT
 	
 	li $v0,4
  	la $a0,no_such_choice
@@ -648,6 +689,7 @@ check_integer:
 	# Consider $v1 is the flag (1: yes, 0: no)
 	li $v1,1
 loop_check:	lb $t0,($a0)
+	move $t5,$t0
 	beq $t0,10,finish_check
 	addi $a0,$a0,1
 	blt $t0,48,not_integer
@@ -871,6 +913,7 @@ strcmp:
 	done:
 		# Exit function
 		jr $ra
+
 		
 #----------------------------------------------------------------
 
