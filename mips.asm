@@ -15,6 +15,12 @@ choice_5: .asciiz"5- Update an existing test result\n"
 choice_6: .asciiz"6- Delete a test\n"
 choice_7: .asciiz"7- Exit from the program\n"
 
+
+output_message: .asciiz"hi program\n"
+
+#Menue search_id
+menu_prompt: .asciiz "# Menu - Search by Patient ID\nEnter your choice:\n1. Retrieve all patient tests\n2. Retrieve all abnormal patient tests\n3. Retrieve all patient tests in a specific period\n"
+
 read_choice: .asciiz"Your choice: "
 no_such_choice: .asciiz"There is no choice with this number, try again\n"
 take_ID_msg: .asciiz"Enter the patiant ID: "
@@ -30,12 +36,14 @@ invalid_month_msg: .asciiz"Not valid month number, try again ...\n"
 not_integer_month: .asciiz"The month must be an integer number, try again...\n"
 not_4digits_msg:.asciiz"The Year must be 4 digits only, try again...\n"
 exit_msg: .asciiz"Exitting from the program ...\n"
+invalid_test_result_msg: .asciiz"Not valid test result, try again ...\n"
 invalid_test_msg: .asciiz"Out of range test result, write it again...\n"
-
+patientIDSearch_msg: .asciiz"Enter the patiant ID to search: "
 
 # buffers
 menue_space: .space 128 
 test_name: .space 128 
+menu_search_id: .space 128 
 test_num: .space 128 
 ID: .space 128
 Year: .space 128
@@ -49,6 +57,10 @@ LDL_min: .float 1.0
 LDL_max: .float 20.0
 BPT_min: .float 1.0
 BPT_max: .float 20.0
+
+patientIDtemp:.space 128
+buffer: .space 1024 # to store the search
+newline: .asciiz "\n"                    # New line character
 
 Hgb:.asciiz"Hgb"
 BGT:.asciiz"BGT"
@@ -361,79 +373,209 @@ continue_add8:
 	la $a0, test_result	# Store the read number in ID
 	syscall
 	
+	jal remove_newline
 	jal check_float
-		
-	jal check_result_test
 
+	beq $v0, $zero, Invalid_test_result
+   	j append_patient
 
-check_result_test:
-    	la $a0, test_name    # Load the address of test_name into $a0
-    	
-    	la $t1, Hgb    # Load the address of the string "Hgb" into $t1
-    	la $t2, BGT    # Load the address of the string "BGT" into $t2
-    	la $t3, LDL    # Load the address of the string "LDL" into $t3
-    	la $t4, BPT    # Load the address of the string "BPT" into $t4
-    	
-    	beq $a0, $t1, check_Hgb    # Compare the values (not addresses) to see if they are equal
-    	beq $a0, $t2, check_BGT    # Compare the values (not addresses) to see if they are equal
-    	beq $a0, $t3, check_LDL    # Compare the values (not addresses) to see if they are equal
-    	beq $a0, $t4, check_BPT    # Compare the values (not addresses) to see if they are equal
-check_Hgb:
+ #-------------------------------------------------------------------------------------- 
+###################### OPTION 2 #########################################################
+search_by_ID:
 
-	# Load the floating-point test result from the memory into a floating-point register
-	l.s $f1, test_result
-	l.s $f2, Hgb_min
-	l.s $f3, Hgb_max
-	c.lt.s $f2, $f1          # Compare input with lower bound
-	bc1f invalid_test        # Branch if input is less than lower bound
-	c.lt.s $f1, $f3          # Compare input with upper bound
-	bc1t append_patient              
-check_BGT:
+    # Display prompt to enter patient ID
+    li $v0, 4
+    la $a0, patientIDSearch_msg
+    syscall
+    
+    # Read patient ID from user
+    li $v0, 8
+    la $a0, patientIDtemp
+    syscall
 
-	# Load the floating-point test result from the memory into a floating-point register
-	l.s $f1, test_result
-	l.s $f2, BGT_min
-	l.s $f3, BGT_max
-	c.lt.s $f2, $f1          # Compare input with lower bound
-	bc1f invalid_test        # Branch if input is less than lower bound
-	c.lt.s $f1, $f3          # Compare input with upper bound
-	bc1t append_patient          
 	
-check_LDL:
-
-	# Load the floating-point test result from the memory into a floating-point register
-	l.s $f1, test_result
-	l.s $f2, LDL_min
-	l.s $f3, LDL_max
-	c.lt.s $f2, $f1          # Compare input with lower bound
-	bc1f invalid_test        # Branch if input is less than lower bound
-	c.lt.s $f1, $f3          # Compare input with upper bound
-	bc1t append_patient          
+     # Check if the ID is integer
+     la $a0,patientIDtemp
+     jal check_integer	   #call the function
+	
+     # If the returned value ($v1) is 1 then continue
+     beq $v1,1,search1
+	
+     # If the returned value ($v1) is 0 then try again
+     li $v0,4
+     la $a0,not_integer_msg
+     syscall
+     j search_by_ID
+	
+search1:	
+     # Check if the ID is 7 digits only
+     la $a0,patientIDtemp
+     jal check_7digits	#call the function
 			
-check_BPT:
+      # If the ID is 7 digits then continue
+      beq $v1,1,search1_1
+      
+	
+      # If it is not 7 digits then try again
+      li $v0,4
+      la $a0,not_7digits_msg
+      syscall
+      j search_by_ID
+     
+#---------------------------------------------------------------------------------------  	   		
+search1_1:
+      # print menue for search id 
+      li $v0,4
+      la $a0,menu_prompt
+      syscall
+      
+        # Ask user to choose a choice
+    	li $v0, 4	        # system call code for printing a string
+    	la $a0, read_choice  # address of the message
+    	syscall  
+      
+         # Read a number from the user
+    	li $v0, 8                # system call code for reading an integer
+    	la $a0,menu_search_id
+    	la $a1,menu_search_id
+   	syscall                  # read the character from the console
+      
+        # Check if the ID is integer
+	la $a0,menu_search_id
+	la $a1,menu_search_id
+	jal check_integer	#call the function
+	
+	# If the returned value ($v1) is 1 then continue
+	beq $v1,1,GO3
+	
+	# If the returned value ($v1) is 0 then try again
+	li $v0,4
+	la $a0,not_integer_msg
+	syscall
+	j search1_1
+	
+GO3:
+ 	# If he chose choice 1
+ 	lb $t0,($a1)
+ 	beq $t0,49, show_all_test
+ 	# If he chose choice 2
+ 	beq $t0,50,show_test_normal
+ 	# If he chose choice 
+ 	beq $t0,51,show_test_from_date
+ 	# If he entered another number then print an error message
+ 	li $v0,4
+ 	la $a0,no_such_choice
+ 	syscall
+ 	j search1_1	# Go back to the menue      
+ 	
+show_all_test:
+ # Open the file
+    li $v0, 13          # syscall 13: open file
+    la $a0, filename   # load address of file name into $a0
+    li $a1, 0           # open for reading
+    syscall             # open the file
 
-	# Load the floating-point test result from the memory into a floating-point register
-	l.s $f1, test_result
-	l.s $f2, BPT_min
-	l.s $f3, BPT_max
-	c.lt.s $f2, $f1          # Compare input with lower bound
-	bc1f invalid_test        # Branch if input is less than lower bound
-	c.lt.s $f1, $f3          # Compare input with upper bound
-	bc1t append_patient         
-	 
-invalid_test:
-    # Handle case where input is out of range
-    # This could involve displaying an error message or taking corrective action
-    # For example:
-    	li $v0, 4
-    	la $a0, invalid_test_msg
-    	syscall
+    move $s0, $v0       # save file descriptor
 
-    # Branch back to menu or appropriate handling code
-    	j continue_add8
+    # Print output message
+    li $v0, 4
+    la $a0, output_message
+    syscall
 
- 	 	
+    # Loop to read lines from file
+read_loop:
+    li $v0, 14          # syscall 14: read from file
+    move $a0, $s0       # file descriptor
+    la $a1, buffer      # buffer to read into
+    li $a2, 256         # maximum number of characters to read
+    syscall             # read from file
 
+    # Check if end of file
+    beq $v0, $zero, end_read_loop
+
+    # Print the line
+    li $v0, 4
+    la $a0, buffer
+    syscall
+
+    # Continue looping
+    j read_loop
+
+end_read_loop:
+    # Close the file
+    li $v0, 16
+    move $a0, $s0
+    syscall
+    
+    # Exit the program
+    li $v0, 10          # syscall 10: exit
+    syscall
+show_test_normal:
+
+show_test_from_date:	
+ 	
+
+
+#--------------------------------------------------------------------------  	   			
+# Function to check if the input string is a valid float
+# Input: $a0 - Pointer to the input string
+# Output: $v0 = 1 if the input string is a valid float, $v0 = 0 otherwise
+# Preserves: $t0, $t1, $t2, $t3, $t4
+check_float:
+    # Allocate space on the stack for $ra
+    addi $sp, $sp, -4  
+    # Save $ra on the stack    
+    sw   $ra, 0($sp)
+
+    li $v0, 1            # Assume it's a float
+    li $t0, 0            # Counter for digits before decimal point
+    li $t1, 0            # Counter for digits after decimal point
+    li $t2, 0            # Flag to track if decimal point encountered
+
+check_digit:
+    lb $t3, ($a0)         # Load the ASCII character into $t3
+
+
+    beqz $t3, end_check  # If it's end of string, return 1
+    beq $t3, 46, check_decimal  # Branch if it's a decimal point
+    li $t4, 48           # ASCII code for '0'
+    blt $t3, $t4, invalid_input  # Branch if it's not a digit
+    li $t4, 57           # ASCII code for '9'
+    bgt $t3, $t4, invalid_input  # Branch if it's not a digit
+
+    j read_integer
+
+check_decimal:
+    beq $t2, 1, invalid_input  # If decimal point already encountered, it's invalid
+    li $t2, 1            # Set decimal point flag
+    addi $a0, $a0, 1     # Move pointer to the next character
+    j check_digit
+
+read_integer:
+    addi $a0, $a0, 1     # Increment digit counter
+    j check_digit
+
+invalid_input:
+
+    li $v0, 0            # Set $v0 to 0 (not a float)
+    j end_check
+
+end_check:
+    # Restore $ra from the stack
+    lw   $ra, 0($sp)
+    # Deallocate space on the stack
+    addi $sp, $sp, 4
+    jr $ra               # Return
+
+
+
+Invalid_test_result:
+    # Print error message for invalid test result
+    li $v0, 4               # System call code for printing string
+    la $a0, invalid_test_result_msg
+    syscall
+    
+    j continue_add8   
 #---------------------------------------------------------------------------------------
 check_test_name:
 	lb $t0,($a1)
@@ -472,12 +614,9 @@ check_test_name:
  	la $a1,BPT
  	jal append_test_name
  	j continue_add3
- #-------------------------------------------------------------------------------------- 
-search_by_ID:
-	
-	j menu	#return to the main menue
-#---------------------------------------------------------------------------------------  	   			
- 
+ 	
+#----------------------------------------------------------------------------
+ 	
 append_patient:
     # Allocate space on the stack for $ra
     addi $sp, $sp, -4  
@@ -537,9 +676,8 @@ do_append1:
     addi $a1,$a1,1
         
     # Append the test result
-#  l.s $f1, test_result
-#    jal convert_float_to_string 
-#    jal append_string
+    la $a0, test_result
+    jal append_string
      
     # Print a newline character
     li $v0, 11         # syscall code for print_character
@@ -756,9 +894,9 @@ loop_check2:	lb $t0,($a0)
 	j loop_check2
 	
 	finish_check2:
-		beq $t1,7,end_check
+		beq $t1,7,end_check11
 		li $v1,0
-	end_check:	
+	end_check11:	
 		# Restore $ra from the stack
         		lw   $ra, 0($sp)
         		# Deallocate space on the stack
