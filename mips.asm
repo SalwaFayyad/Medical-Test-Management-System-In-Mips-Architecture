@@ -21,7 +21,7 @@ print: .asciiz"********************************************\n"
 output_message: .asciiz"hi program\n"
 
 #Menue search_id
-menu_prompt: .asciiz "# Menu - Search by Patient ID\nEnter your choice:\n1. Retrieve all patient tests\n2. Retrieve all abnormal patient tests\n3. Retrieve all patient tests in a specific period\n"
+menu_prompt: .asciiz "# Menu - Search by Patient ID\nEnter your choice:\n1. Retrieve all patient tests\n2. Retrieve all abnormal patient tests\n3. Retrieve all patient tests in a specific period\n4. Back\n"
 
 read_choice: .asciiz"Your choice: "
 no_such_choice: .asciiz"There is no choice with this number, try again\n"
@@ -67,7 +67,6 @@ result_buffer  : .space 1024 # to store the search
 newline: .asciiz "\n"                    # New line character
 line_buffer: .space 1024   # Buffer to hold a single line from the file
 id_not_found_message: .asciiz "There is no medical file for this patient\n"
-
 Hgb:.asciiz"Hgb"
 BGT:.asciiz"BGT"
 LDL:.asciiz"LDL"
@@ -451,11 +450,13 @@ search1_1:
       la $a0,menu_prompt
       syscall
       
+      
         # Ask user to choose a choice
     	li $v0, 4	        # system call code for printing a string
     	la $a0, read_choice  # address of the message
     	syscall  
-      
+
+   
          # Read a number from the user
     	li $v0, 8                # system call code for reading an integer
     	la $a0,menu_search_id
@@ -477,20 +478,36 @@ search1_1:
 	j search1_1
 	
 GO3:
- 	# If he chose choice 1
- 	lb $t0,($a1)
- 	beq $t0,49, show_all_test
- 	# If he chose choice 2
- 	beq $t0,50,show_test_normal
- 	# If he chose choice 
- 	beq $t0,51,show_test_from_date
- 	# If he entered another number then print an error message
- 	li $v0,4
- 	la $a0,no_such_choice
- 	syscall
- 	j search1_1	# Go back to the menue   
+# If he chose choice 1e choice 1
+# If he chose choice 1
+lb $t0, 0($a1)          # Load the first byte of the entered choice
+lb $t1, 1($a1)          # Load the second byte of the entered choice
+li $t2, '1'             # ASCII value of '1'
+li $t4, '2'             # ASCII value of '1'
+li $t5, '3'             # ASCII value of '1'
+li $t6, '4'             # ASCII value of '1'
+li $t3,10               # ASCII value of null terminator
+j check_null2
 
+check_null2:
+beq $t1, $t3, Selection_check2 # Proceed to choice if only one byte was entered
+j no_Selection_check2 
 
+Selection_check2  :
+beq $t0, $t2,  show_all_test # If the first byte matches '1', proceed to choice 1
+beq $t0, $t4, show_test_normal# If the first byte matches '2', proceed to choice 1
+beq $t0, $t5, show_test_from_date# If the first byte matches '2', proceed to choice 1
+beq $t0, $t6, back_to_menue# If the first byte matches '2', proceed to choice 1
+# If the second byte is null terminator, it's a single-digit choice
+no_Selection_check2 :
+# If the first byte doesn't match '1', or if the second byte is not null, it's an invalid choice
+li $v0, 4
+la $a0, no_such_choice
+syscall
+j search1_1                  # Go back to the menu
+
+back_to_menue:
+	j menu
 show_all_test:
     # Set up pointers for search
     la $s0, file_buffer          # Load address of file_buffer
