@@ -2,6 +2,7 @@
 .data
 # Here we put the file path as the following form
 filename: .asciiz "C:\\Users\\Geinus\\Desktop\\Proj-Arch1Medical-Test-Management-System\\medical.txt"
+
 # Here we have the data section
 file_buffer: .space 1024
 
@@ -15,6 +16,7 @@ choice_5: .asciiz"5- Update an existing test result\n"
 choice_6: .asciiz"6- Delete a test\n"
 choice_7: .asciiz"7- Exit from the program\n"
 
+print: .asciiz"********************************************\n"
 
 output_message: .asciiz"hi program\n"
 
@@ -39,7 +41,9 @@ exit_msg: .asciiz"Exitting from the program ...\n"
 invalid_test_result_msg: .asciiz"Not valid test result, try again ...\n"
 invalid_test_msg: .asciiz"Out of range test result, write it again...\n"
 patientIDSearch_msg: .asciiz"Enter the patiant ID to search: "
-
+not_found_message:  .asciiz "Patient ID not found.\n"
+# Debug message
+debug_message: .asciiz "Debug message \n"
 # buffers
 menue_space: .space 128 
 test_name: .space 128 
@@ -59,8 +63,10 @@ BPT_min: .float 1.0
 BPT_max: .float 20.0
 
 patientIDtemp:.space 128
-buffer: .space 1024 # to store the search
+result_buffer  : .space 1024 # to store the search
 newline: .asciiz "\n"                    # New line character
+line_buffer: .space 1024   # Buffer to hold a single line from the file
+id_not_found_message: .asciiz "There is no medical file for this patient\n"
 
 Hgb:.asciiz"Hgb"
 BGT:.asciiz"BGT"
@@ -164,17 +170,33 @@ menu:
 	j menu
 	
 GO:
- 	# If he chose choice 1
- 	lb $t0,($a1)
- 	beq $t0,49, Add_test
- 	# If he chose choice 2
- 	beq $t0,50,search_by_ID
- 	# If he entered another number then print an error message
- 	li $v0,4
- 	la $a0,no_such_choice
- 	syscall
- 	j menu 	# Go back to the menue
- 	
+# If he chose choice 1
+lb $t0, 0($a1)          # Load the first byte of the entered choice
+lb $t1, 1($a1)          # Load the second byte of the entered choice
+li $t2, '1'             # ASCII value of '1'
+li $t4, '2'             # ASCII value of '1'
+li $t3,10               # ASCII value of null terminator
+j check_null
+
+
+
+check_null:
+beq $t1, $t3, Selection_check # Proceed to choice if only one byte was entered
+j no_Selection_check 
+
+Selection_check  :
+beq $t0, $t2, Add_test  # If the first byte matches '1', proceed to choice 1
+beq $t0, $t4, search_by_ID # If the first byte matches '2', proceed to choice 1
+# If the second byte is null terminator, it's a single-digit choice
+
+no_Selection_check :
+# If the first byte doesn't match '1', or if the second byte is not null, it's an invalid choice
+li $v0, 4
+la $a0, no_such_choice
+syscall
+j menu                  # Go back to the menu
+
+
 #---------------------------------------------------------------------------
 Add_test:
 	# Start adding test
@@ -466,50 +488,101 @@ GO3:
  	li $v0,4
  	la $a0,no_such_choice
  	syscall
- 	j search1_1	# Go back to the menue      
- 	
+ 	j search1_1	# Go back to the menue   
+
+
 show_all_test:
- # Open the file
-    li $v0, 13          # syscall 13: open file
-    la $a0, filename   # load address of file name into $a0
-    li $a1, 0           # open for reading
-    syscall             # open the file
+    # Set up pointers for search
+    la $s0, file_buffer          # Load address of file_buffer
+    move $s1, $s0                # Load address of result_buffer
 
-    move $s0, $v0       # save file descriptor
+    la $t7, patientIDtemp        # Load address of patientIDtemp
+    li $t8, 0                    # Initialize flag to 0 (not found), if ID is found set to 1
+    li $t2, 0                    # Counter for characters in ID
 
-    # Print output message
+    la $a0, print
     li $v0, 4
-    la $a0, output_message
     syscall
 
-    # Loop to read lines from file
 read_loop:
-    li $v0, 14          # syscall 14: read from file
-    move $a0, $s0       # file descriptor
-    la $a1, buffer      # buffer to read into
-    li $a2, 256         # maximum number of characters to read
-    syscall             # read from file
+    lb $t0, 0($s0)               # Load a byte from buffer
+    lb $t4, 0($t7)               # Load a byte from patientIDtemp
 
-    # Check if end of file
-    beq $v0, $zero, end_read_loop
+    beq $t0, $t4, continue_checking    # If characters match, continue checking
+    beqz $t0, end                      # Check if end of buffer
 
-    # Print the line
-    li $v0, 4
-    la $a0, buffer
-    syscall
+    beq $t0, 10, next_line             # Check for end of line
 
-    # Continue looping
+    beq $t4, $zero, next_line         # Check for end of patient ID
+
+    j next_line                         # If not, move to next line
+
+continue_checking:
+    addi $t2, $t2, 1                    # Increment character counter
+    beq $t2, 7, set_flag                 # If ID found, set flag
+
+    # Move to next character
+    addi $s0, $s0, 1
+    addi $t7, $t7, 1
     j read_loop
 
-end_read_loop:
-    # Close the file
-    li $v0, 16
-    move $a0, $s0
+next_line:
+    # Reset character counter for new line
+    li $t2, 0
+    addi $s0, $s0, 1
+    move $s1, $s0                       # Load address of result_buffer
+    la $t7, patientIDtemp               # Reload address of patientIDtemp
+    j read_loop
+
+set_flag:
+    # Set flag indicating ID found
+    li $t8, 1
+    j print_line
+
+print_line:
+    # Load byte from memory address in $s1
+    lb $t0, 0($s1)
+   
+    beqz $t0, end_print_line
+    
+    # Check if the byte is newline character
+    beq $t0, 10, end_print_line
+    
+    # Print the character
+    li $v0, 11         # syscall to print character
+    move $a0, $t0      # Move byte to print into $a0
     syscall
     
-    # Exit the program
-    li $v0, 10          # syscall 10: exit
+    # Move to next byte
+    addi $s1, $s1, 1
+    
+    # Continue printing characters
+    j print_line
+
+end_print_line:
+    # Print newline character
+    li $v0, 11     # Print newline character
+    li $a0, 10
     syscall
+    j read_loop
+
+end:
+    # If ID not found, print message
+    beqz $t8, id_not_found
+    
+    la $a0, print
+    li $v0, 4
+    syscall
+    j menu
+
+id_not_found:
+    # Print message indicating ID not found
+    la $a0, id_not_found_message
+    li $v0, 4
+    syscall
+    j menu
+
+
 show_test_normal:
 
 show_test_from_date:	
@@ -535,7 +608,6 @@ check_float:
 check_digit:
     lb $t3, ($a0)         # Load the ASCII character into $t3
 
-
     beqz $t3, end_check  # If it's end of string, return 1
     beq $t3, 46, check_decimal  # Branch if it's a decimal point
     li $t4, 48           # ASCII code for '0'
@@ -549,24 +621,45 @@ check_decimal:
     beq $t2, 1, invalid_input  # If decimal point already encountered, it's invalid
     li $t2, 1            # Set decimal point flag
     addi $a0, $a0, 1     # Move pointer to the next character
+
     j check_digit
+
+add_decimal_zero:
+    li $t2, 1            # Set decimal point flag
+    la $a0,test_result
+    
+add_test:	
+	lb $t0,($a0)
+	beqz $t0,do
+	addi $a0,$a0,1
+	j add_test 
+do:	
+    li $t0, 46           # ASCII code for '.'
+    sb $t0, ($a0)        # Store decimal point in test_result
+    addi $a0, $a0, 1     # Move pointer to the next character
+
+    li $t0, 48           # ASCII code for '0'
+    sb $t0, ($a0)        # Store '0' after the decimal point
+    addi $a0, $a0, 1     # Move pointer to the next character
+
+    j end_check
 
 read_integer:
     addi $a0, $a0, 1     # Increment digit counter
     j check_digit
 
 invalid_input:
-
     li $v0, 0            # Set $v0 to 0 (not a float)
     j end_check
 
 end_check:
+
+    beqz $t2,add_decimal_zero
     # Restore $ra from the stack
     lw   $ra, 0($sp)
     # Deallocate space on the stack
     addi $sp, $sp, 4
     jr $ra               # Return
-
 
 
 Invalid_test_result:
@@ -578,17 +671,30 @@ Invalid_test_result:
     j continue_add8   
 #---------------------------------------------------------------------------------------
 check_test_name:
-	lb $t0,($a1)
-	beq $t0,49,append_Hgb
-	beq $t0,50,append_BGT
-	beq $t0,51,append_LDL
-	beq $t0,52,append_BPT
-	
-	li $v0,4
- 	la $a0,no_such_choice
- 	syscall
- 	j continue_add2
- 	
+# Check if the input is a single character
+lb $t1, 1($a1)          # Load the second byte of the entered choice
+li $t2, 10               # ASCII value of null terminator
+beq $t1, $t2, check_single_character   # If only one byte was entered, proceed to check_single_character
+j invalid_choice        # If more than one byte was entered, it's an invalid choice
+
+# If only one byte was entered, check if it's '1' or '2'
+check_single_character:
+lb $t0, ($a1)           # Load the entered choice
+beq $t0, '1', append_Hgb    # If the entered choice is '1', go to append_Hgb
+beq $t0, '2', append_BGT    # If the entered choice is '2', go to append_BGT
+beq $t0, '3', append_LDL    # If the entered choice is '3', go to append_LDL
+beq $t0, '4', append_BPT    # If the entered choice is '4', go to append_BPT
+j invalid_choice        # If the entered choice is neither '1' nor '2', it's an invalid choice
+
+# Define your append functions (append_Hgb, append_BGT, etc.) here
+
+# Label for invalid choice
+invalid_choice:
+li $v0, 4
+la $a0, no_such_choice
+syscall
+j continue_add2   # Go back to the menu or appropriate section after displaying the message
+
  append_Hgb:	
    	la $a0, test_name   	 # Load the address of test_name into $a0
    	la $a1, Hgb 		# Load the address of Hgb into $a1
