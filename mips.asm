@@ -1,7 +1,7 @@
 # Here we have the data section
 .data
 # Here we put the file path as the following form
-filename: .asciiz "C:\\Users\\Geinus\\Desktop\\Proj-Arch1Medical-Test-Management-System\\medical.txt"
+ filename: .asciiz "C:\\Users\\Geinus\\Desktop\\Proj-Arch1Medical-Test-Management-System\\medical.txt"
 
 # Here we have the data section
 file_buffer: .space 1024
@@ -15,7 +15,7 @@ choice_4: .asciiz"4- Average test value\n"
 choice_5: .asciiz"5- Update an existing test result\n"
 choice_6: .asciiz"6- Delete a test\n"
 choice_7: .asciiz"7- Exit from the program\n"
-
+normal_string: .asciiz "normal\n"
 print: .asciiz"********************************************\n"
 
 output_message: .asciiz"hi program\n"
@@ -27,9 +27,9 @@ read_choice: .asciiz"Your choice: "
 no_such_choice: .asciiz"There is no choice with this number, try again\n"
 take_ID_msg: .asciiz"Enter the patiant ID: "
 take_test_name:.asciiz"Select test name\n1- Hemoglobin (Hgb)\n2- Blood Glucose Test (BGT)\n3- Cholesterol Low-Density Lipoprotein\n4- Blood Pressure Test (BPT)\nEnter the number of the test only\nYour choice: "
-take_year_msg: .asciiz"Enter the Year of the test : \n"
-take_month_msg: .asciiz"Enter the Month of the test : \n"
-take_test_result_msg: .asciiz"Enter the test result : \n"
+take_year_msg: .asciiz"Enter the Year of the test : "
+take_month_msg: .asciiz"Enter the Month of the test : "
+take_test_result_msg: .asciiz"Enter the test result : "
 not_integer_msg: .asciiz"The Entered value must be an integer number, try again...\n"
 not_7digits_msg:.asciiz"The ID must be 7 digits only, try again...\n"
 not_valid_year_msg: .asciiz"Not valid year number, try again ...\n"
@@ -50,6 +50,7 @@ test_name: .space 128
 menu_search_id: .space 128 
 test_num: .space 128 
 ID: .space 128
+append_test: .space 128
 Year: .space 128
 Month: .space 128
 test_result: .space 128
@@ -71,7 +72,10 @@ Hgb:.asciiz"Hgb"
 BGT:.asciiz"BGT"
 LDL:.asciiz"LDL"
 BPT:.asciiz"BPT"
-
+Systolic:.space 128
+Systolic_msg:.asciiz"Enter Systolic Blood Pressure: "
+Diastolic:.space 128
+Diastolic_msg:.asciiz"Enter Diastolic Blood Pressure: "
 ###########################################################
 # Here is the code section
 .text
@@ -101,7 +105,9 @@ main:
    
 #----------------------------------------------------
 menu:
-	# Print menue message
+	la $t1,ID
+	li $t1,0
+	# Print menu message
     	li $v0, 4	     # system call code for printing a string
     	la $a0, menu_msg  # address of the message
     	syscall                
@@ -198,6 +204,17 @@ j menu                  # Go back to the menu
 
 #---------------------------------------------------------------------------
 Add_test:
+
+        jal take_id
+        jal take_testname
+        jal take_year_month
+        jal take_results
+
+take_id:
+	    # Allocate space on the stack for $ra
+    addi $sp, $sp, -4  
+    # Save $ra on the stack    
+    sw   $ra, 0($sp)
 	# Start adding test
 	li $v0,4
 	la $a0,take_ID_msg
@@ -219,9 +236,10 @@ Add_test:
 	li $v0,4
 	la $a0,not_integer_msg
 	syscall
-	j Add_test
+	j take_id
 	
 continue_add:	
+
 	# Check if the ID is 7 digits only
 	la $a0,ID
 	jal check_7digits	#call the function
@@ -236,11 +254,25 @@ continue_add:
 	li $v0,4
 	la $a0,not_7digits_msg
 	syscall
-	j Add_test
 	
-continue_add2:	
+	j take_id
+
+continue_add2:
+    # If the ID is valid, return
+        # Restore $ra from the stack
+    lw   $ra, 0($sp)
+    # Deallocate space on the stack
+    addi $sp, $sp, 4
+    jr $ra               # Return
+    
+take_testname:    
 	# Now lets move to the test name
-	
+    # Allocate space on the stack for $ra
+    addi $sp, $sp, -4  
+    # Save $ra on the stack    
+    sw   $ra, 0($sp)
+    
+    		
 	li $v0,4
 	la $a0,take_test_name
 	syscall
@@ -262,15 +294,28 @@ continue_add2:
 	li $v0,4
 	la $a0,not_integer_msg
 	syscall
-	j continue_add2
+	j take_testname
 	
 GO1:	
 	j check_test_name
+	
 
 	
 continue_add3:
+    # Restore $ra from the stack
+    lw   $ra, 0($sp)
+    # Deallocate space on the stack
+    addi $sp, $sp, 4
+    jr $ra               # Return
+    
+    
+take_year_month:	# Now lets take the date
 
-	# Now lets take the date
+    # Allocate space on the stack for $ra
+    addi $sp, $sp, -4  
+    # Save $ra on the stack    
+    sw   $ra, 0($sp)
+take_year:    
 	li $v0,4
 	la $a0,take_year_msg
 	syscall
@@ -291,7 +336,7 @@ continue_add3:
 	li $v0,4
 	la $a0,not_integer_year
 	syscall
-	j continue_add3
+	j take_year
 	
 	
 continue_add4:
@@ -306,85 +351,109 @@ continue_add4:
 	li $v0,4
 	la $a0,not_4digits_msg
 	syscall
-	j continue_add3
+	j take_year
 
 #........................................
 continue_add5:
-   	 # Load the address of the string (Year) into $a0
-    	la $a0, Year           
-    	jal remove_newline
-    	# Call the to_integer function to convert the string to an integer
-    	jal Year_to_Integer
-    	# Retrieve the integer value returned from to_integer
-	
-	move $t0, $v1
+    # Load the address of the string (Year) into $a0
+    la $a0, Year           
+    jal remove_newline
+    # Call the to_integer function to convert the string to an integer
+    jal Year_to_Integer
+    # Retrieve the integer value returned from to_integer
+    move $t0, $v1
 
-	# Check if the year is within an acceptable range (2000 to 2024)
-	li $t1, 2000            # Lower bound of the acceptable range
-	li $t2, 2024            # Upper bound of the acceptable range
-   	ble $t0, $t1, not_valid_year # If year is less than or equal to 2000, not valid
- 	bgt $t0, $t2, not_valid_year # If year is greater than  to 2024, not valid
+    # Check if the year is within an acceptable range (2000 to 2024)
+    li $t1, 2000            # Lower bound of the acceptable range
+    li $t2, 2024            # Upper bound of the acceptable range
+    ble $t0, $t1, not_valid_year # If year is less than or equal to 2000, not valid
+    bgt $t0, $t2, not_valid_year # If year is greater than 2024, not valid
 
-	j continue_add6 # If the year is within the acceptable range, proceed to continue_add6
+    j continue_add6 # If the year is within the acceptable range, proceed to continue_add6
 
 not_valid_year:
-    	li $v0, 4               # System call code for printing string
-    	la $a0, not_valid_year_msg # Load address of the error message
-    	syscall                 # Print error message
+    # Print error message
+    li $v0, 4
+    la $a0, not_valid_year_msg
+    syscall
     
-    	j continue_add3          # Try again
+    # Try again
+    j take_year
 
-#### NOTE THAT T0 IS THE YEAR 
- #........................................
 continue_add6:
-	
-	# Now lets take the date (month)
-	li $v0,4
-	la $a0,take_month_msg
-	syscall
-	
-	# Read month from the user
-	li $v0,8	# System call code for reading a string
-	la $a0, Month	# Store the read number in month
-	syscall
-	
-	# Check if the month is integer
-	la $a0,Month
-	jal check_integer	#call the function
-	
-	# If the returned value ($v1) is 1 then continue
-	beq $v1,1,continue_add7
-	
-	# If the returned value ($v1) is 0 then try again
-	li $v0,4
-	la $a0,not_integer_month
-	syscall	
-	j continue_add6
-	
+    # Now lets take the date (month)
+    li $v0,4
+    la $a0,take_month_msg
+    syscall
+    
+    # Read month from the user
+    li $v0,8    # System call code for reading a string
+    la $a0, Month   # Store the read number in month
+    syscall
+    
+    # Check if the month is integer
+    la $a0,Month
+    jal check_integer    #call the function
+    
+    # If the returned value ($v1) is 1 then continue
+    beq $v1,1,continue_add7
+    
+    # If the returned value ($v1) is 0 then try again
+    li $v0,4
+    la $a0,not_integer_month
+    syscall 
+    
+    # Return to adding month again
+    j continue_add6
+    
 continue_add7:
-   	# Check if the month is between 1 and 12
-  	la $a0, Month      
-  	jal remove_newline
-    	# Call the to_integer function to convert the string to an integer
-    	jal Month_to_Integer
-    	move $t1, $v1
-    	li $t2, 1               # Lower bound of the acceptable range
-    	li $t3, 12              # Upper bound of the acceptable range
-    	blt $t1, $t2, invalid_month # If month is less than 1, it's invalid
-    	bgt $t1, $t3, invalid_month # If month is greater than 12, it's invalid
+    # Check if the month is between 1 and 12
+    la $a0, Month      
+    jal remove_newline
+    # Call the to_integer function to convert the string to an integer
+    jal Month_to_Integer
+    move $t1, $v1
+    li $t2, 1               # Lower bound of the acceptable range
+    li $t3, 12              # Upper bound of the acceptable range
+    blt $t1, $t2, invalid_month # If month is less than 1, it's invalid
+    bgt $t1, $t3, invalid_month # If month is greater than 12, it's invalid
 
-    	j continue_add8                  # If the month is valid, return to the menu
+    j continue_add8                  # If the month is valid, return to the menu
 
 invalid_month:
-    	li $v0, 4               # System call code for printing string
-    	la $a0, invalid_month_msg # Load address of the error message
-    	syscall                 # Print error message
+    # Print error message
+    li $v0, 4
+    la $a0, invalid_month_msg
+    syscall                 
     
-    	j continue_add6         # Return to adding month again
-    	
-################# NOTE THAT T1 IS THE MONTH
+    # Return to adding month again
+    j continue_add6
 
 continue_add8:
+    # Restore $ra from the stack
+    lw   $ra, 0($sp)
+    # Deallocate space on the stack
+    addi $sp, $sp, 4
+    jr $ra               # Return
+################# NOTE THAT T1 IS THE MONTH
+
+take_results:
+        # Allocate space on the stack for $ra
+    addi $sp, $sp, -4  
+    # Save $ra on the stack    
+    sw   $ra, 0($sp)
+    
+	la $a0,test_num
+	jal remove_newline
+	
+
+    lb $t0, ($a0)  
+    li $t1, 52      # ASCII value of '4'
+    beq $t0, $t1, Bpt_test
+
+    # If the comparison fails, jump to take_test
+    j take_test
+take_test:		
 	# Now lets take the test result for the patient 
 	li $v0,4
 	la $a0,take_test_result_msg
@@ -398,7 +467,46 @@ continue_add8:
 	jal check_float
 
 	beq $v0, $zero, Invalid_test_result
+	    # Load address of ID into $a1
+        la $a1, ID
    	j append_patient
+#...........................................................................................
+Bpt_test:
+    # Allocate space on the stack for $ra
+    addi $sp, $sp, -4  
+    # Save $ra on the stack    
+    sw   $ra, 0($sp)
+    
+Systolic_label:    
+    li $v0,4 
+    la $a0,Systolic_msg
+    syscall
+    li $v0,8	# System call code for reading a string
+    la $a0, Systolic	# Store the read number in ID
+    syscall    
+
+    la $a0,Systolic
+    jal remove_newline
+    jal check_float
+    beq $v0, $zero, Invalid_Systolic_result    
+    
+Diastolic_label:            
+    li $v0,4 
+    la $a0,Diastolic_msg
+    syscall
+    li $v0,8	# System call code for reading a string
+    la $a0, Diastolic	# Store the read number in ID
+    syscall    
+    
+    la $a0,Diastolic
+    jal remove_newline
+    jal check_float
+    beq $v0, $zero, Invalid_Diastolic_result                      
+
+    # Load address of ID into $a1
+    la $a1, ID
+    jal append_patient
+
 
  #-------------------------------------------------------------------------------------- 
 ###################### OPTION 2 #########################################################
@@ -602,90 +710,106 @@ id_not_found:
 
 show_test_normal:
 
+       # Set up pointers for search
+    la $s0, file_buffer          # Load address of file_buffer
+    move $s1, $s0                # Load address of result_buffer
+
+    la $t7, patientIDtemp        # Load address of patientIDtemp
+    li $t8, 0                    # Initialize flag to 0 (not found), if ID is found set to 1
+    li $t2, 0                    # Counter for characters in ID
+    li $t5, 0                    # Counter 
+    la $a0, print
+    li $v0, 4
+    syscall
+
+read_loop2:
+
+    lb $t0, 0($s0)               # Load a byte from buffer
+    lb $t4, 0($t7)               # Load a byte from patientIDtemp
+
+    beq $t0, $t4, continue_checking2    # If characters match, continue checking
+    beqz $t0, end2                      # Check if end2 of buffer
+
+    beq $t0, 10, next_line2             # Check for end2 of line
+
+    beq $t4, $zero, next_line2         # Check for end2 of patient ID
+
+    j next_line2                         # If not, move to next line
+
+continue_checking2:
+    addi $t2, $t2, 1                    # Increment character counter
+    beq $t2, 7, set_flag2                 # If ID found, set flag
+
+    # Move to next character
+    addi $s0, $s0, 1
+    addi $t7, $t7, 1
+    j read_loop2
+
+next_line2:
+    # Reset character counter for new line
+    li $t2, 0
+    addi $s0, $s0, 1
+    move $s1, $s0                       # Load address of result_buffer
+    la $t7, patientIDtemp               # Reload address of patientIDtemp
+    j read_loop2
+
+set_flag2:
+    # Set flag indicating ID found
+    li $t8, 1
+    jal check_normality
+     beq $v1,1,print_line2
+     la $t7, patientIDtemp        # Load address of patientIDtemp
+     j read_loop2
+
+print_line2:
+    # Load byte from memory address in $s11200430
+    lb $t0, 0($s1)
+   
+    beqz $t0, end2_print_line2
+    
+    # Check if the byte is newline character
+    beq $t0, 10, end2_print_line2
+    
+    # Print the character
+    li $v0, 11         # syscall to print character
+    move $a0, $t0      # Move byte to print into $a0
+    syscall
+    addi $t5, $t5, 1
+    
+
+    # Move to next byte
+    addi $s1, $s1, 1
+    
+    # Continue printing characters
+    j print_line2
+
+end2_print_line2:
+    # Print newline character
+    li $v0, 11     # Print newline character
+    li $a0, 10
+    syscall
+    la $t7, patientIDtemp        # Load address of patientIDtemp
+    j read_loop2
+
+end2:
+    # If ID not found, print message
+    beqz $t8, id_not_found2
+    
+    la $a0, print
+    li $v0, 4
+    syscall
+    j menu
+
+id_not_found2:
+    # Print message indicating ID not found
+    la $a0, id_not_found_message
+    li $v0, 4
+    syscall
+   j menu
 show_test_from_date:	
  	
 
 
-#--------------------------------------------------------------------------  	   			
-# Function to check if the input string is a valid float
-# Input: $a0 - Pointer to the input string
-# Output: $v0 = 1 if the input string is a valid float, $v0 = 0 otherwise
-# Preserves: $t0, $t1, $t2, $t3, $t4
-check_float:
-    # Allocate space on the stack for $ra
-    addi $sp, $sp, -4  
-    # Save $ra on the stack    
-    sw   $ra, 0($sp)
-
-    li $v0, 1            # Assume it's a float
-    li $t0, 0            # Counter for digits before decimal point
-    li $t1, 0            # Counter for digits after decimal point
-    li $t2, 0            # Flag to track if decimal point encountered
-
-check_digit:
-    lb $t3, ($a0)         # Load the ASCII character into $t3
-
-    beqz $t3, end_check  # If it's end of string, return 1
-    beq $t3, 46, check_decimal  # Branch if it's a decimal point
-    li $t4, 48           # ASCII code for '0'
-    blt $t3, $t4, invalid_input  # Branch if it's not a digit
-    li $t4, 57           # ASCII code for '9'
-    bgt $t3, $t4, invalid_input  # Branch if it's not a digit
-
-    j read_integer
-
-check_decimal:
-    beq $t2, 1, invalid_input  # If decimal point already encountered, it's invalid
-    li $t2, 1            # Set decimal point flag
-    addi $a0, $a0, 1     # Move pointer to the next character
-
-    j check_digit
-
-add_decimal_zero:
-    li $t2, 1            # Set decimal point flag
-    la $a0,test_result
-    
-add_test:	
-	lb $t0,($a0)
-	beqz $t0,do
-	addi $a0,$a0,1
-	j add_test 
-do:	
-    li $t0, 46           # ASCII code for '.'
-    sb $t0, ($a0)        # Store decimal point in test_result
-    addi $a0, $a0, 1     # Move pointer to the next character
-
-    li $t0, 48           # ASCII code for '0'
-    sb $t0, ($a0)        # Store '0' after the decimal point
-    addi $a0, $a0, 1     # Move pointer to the next character
-
-    j end_check
-
-read_integer:
-    addi $a0, $a0, 1     # Increment digit counter
-    j check_digit
-
-invalid_input:
-    li $v0, 0            # Set $v0 to 0 (not a float)
-    j end_check
-
-end_check:
-
-    beqz $t2,add_decimal_zero
-    # Restore $ra from the stack
-    lw   $ra, 0($sp)
-    # Deallocate space on the stack
-    addi $sp, $sp, 4
-    jr $ra               # Return
-
-
-Invalid_test_result:
-    # Print error message for invalid test result
-    li $v0, 4               # System call code for printing string
-    la $a0, invalid_test_result_msg
-    syscall
-    
-    j continue_add8   
 #---------------------------------------------------------------------------------------
 check_test_name:
 # Check if the input is a single character
@@ -739,21 +863,18 @@ j continue_add2   # Go back to the menu or appropriate section after displaying 
  	j continue_add3
  	
 #----------------------------------------------------------------------------
- 	
+  	
 append_patient:
-    # Allocate space on the stack for $ra
-    addi $sp, $sp, -4  
-    # Save $ra on the stack    
-    sw   $ra, 0($sp)
-    
+    # Clear the buffer
+    li $t0, 0        # ASCII code for null terminator
+    sb $t0, append_test       # Set the first byte of the buffer to null terminator
+
     # Load address of ID into $a1
-    la $a1, ID
-loopAppend1:	
-	lb $t0,($a1)
-	beqz $t0,do_append1
-	addi $a1,$a1,1
-	j loopAppend1   
-do_append1:	 
+    la $a1, append_test 
+    # Append the test name
+    la $a0, ID
+    jal append_string
+	 
     # Append a colon (':')
     li $t0, 58    # ASCII code for ':'
     sb $t0, ($a1)
@@ -797,18 +918,32 @@ do_append1:
     li $t0,32	# Ascii code for the space
     sb $t0,($a1)
     addi $a1,$a1,1
-        
+
+
+    la $a2,test_num
+    lb $t0, ($a2)  
+    li $t1, 52      # ASCII value of '4'
+    beq $t0, $t1, complete_BPT_append
+
+    # If the comparison fails, jump to take_test
+    j complete_append   
+      
+complete_append: 
+
     # Append the test result
     la $a0, test_result
     jal append_string
-     
+  
+  # Manually add null terminator
+li $t0, 0         # ASCII value of null terminator
+sb $t0, ($a1)     # Store null terminator at the end of the string buffer
     # Print a newline character
     li $v0, 11         # syscall code for print_character
     li $a0, 10         # ASCII code for newline
     syscall
 
     # Print the appended string (ID)
-    la $a0, ID
+    la $a0, test_result
     li $v0, 4          # syscall code for print_string
     syscall
 
@@ -821,15 +956,50 @@ do_append1:
     li $v0, 11         # syscall code for print_character
     li $a0, 10         # ASCII code for newline
     syscall
-    
-    # Restore $ra from the stack
-    lw   $ra, 0($sp)
-    # Deallocate space on the stack
-    addi $sp, $sp, 4
-    # Return to the caller
     j AppendToFileBuffer
+########################################################3
  
+complete_BPT_append:
 
+    # Append the test result
+    la $a0, Systolic
+    jal append_string
+    
+   # Append a comma (',')
+    li $t0, 44    # ASCII code for ','
+    sb $t0, ($a1)
+    addi $a1, $a1, 1
+    
+    li $t0,32	# Ascii code for the space
+    sb $t0,($a1)
+    addi $a1,$a1,1  
+       
+    # Append the test result
+    la $a0, Diastolic
+    jal append_string    
+    # Print a newline character
+    li $v0, 11         # syscall code for print_character
+    li $a0, 10         # ASCII code for newline
+    syscall
+
+    # Print the appended string (ID)
+    la $a0, append_test
+    li $v0, 4          # syscall code for print_string
+    syscall
+
+    # Print a newline character
+    li $v0, 11         # syscall code for print_character
+    li $a0, 10         # ASCII code for newline
+    syscall
+    
+    # Print a newline character
+    li $v0, 11         # syscall code for print_character
+    li $a0, 10         # ASCII code for newline
+    syscall
+
+    j AppendToFileBuffer
+    
+    
 append_string:
     lb $t0, ($a0)      # Load byte from source address
     beqz $t0, finish_append_string   # If byte is zero, finish
@@ -844,6 +1014,8 @@ finish_append_string:
 
 #-------------------------------------------------------------------
 AppendToFileBuffer:
+
+  la $s3, append_test
   la $s1, file_buffer
 
   find_end:
@@ -857,7 +1029,7 @@ AppendToFileBuffer:
     sb $t0, ($s1)
     addi $s1, $s1, 1
 
-    la $s3, ID
+
     copy_id:
       lb $t0, ($s3)
       sb $t0, ($s1)
@@ -939,6 +1111,79 @@ end_copy_loop:    # End of loop
        # Return from subroutine
     	jr $ra
 #---------------------------------------------------------------------------
+# Function to check if the input string is a valid float
+# Input: $a0 - Pointer to the input string
+# Output: $v0 = 1 if the input string is a valid float, $v0 = 0 otherwise
+# Preserves: $t0, $t1, $t2, $t3, $t4
+check_float:
+    # Allocate space on the stack for $ra
+    addi $sp, $sp, -4  
+    # Save $ra on the stack    
+    sw   $ra, 0($sp)
+
+    li $v0, 1            # Assume it's a float
+    li $t0, 0            # Counter for digits before decimal point
+    li $t1, 0            # Counter for digits after decimal point
+    li $t2, 0            # Flag to track if decimal point encountered
+
+check_digit:
+    lb $t3, ($a0)         # Load the ASCII character into $t3
+
+    beqz $t3, end_check  # If it's end of string, return 1
+    beq $t3, 46, check_decimal  # Branch if it's a decimal point
+    li $t4, 48           # ASCII code for '0'
+    blt $t3, $t4, invalid_input  # Branch if it's not a digit
+    li $t4, 57           # ASCII code for '9'
+    bgt $t3, $t4, invalid_input  # Branch if it's not a digit
+
+    j read_integer
+
+check_decimal:
+    beq $t2, 1, invalid_input  # If decimal point already encountered, it's invalid
+    li $t2, 1            # Set decimal point flag
+    addi $a0, $a0, 1     # Move pointer to the next character
+
+    j check_digit
+
+add_decimal_zero:
+    li $t2, 1            # Set decimal point flag
+    
+add_test:
+	lb $t0,($a0)
+	beqz $t0,do
+	addi $a0,$a0,1
+	j add_test 
+do:	
+    li $t0, 46           # ASCII code for '.'
+    sb $t0, ($a0)        # Store decimal point in test_result
+    addi $a0, $a0, 1     # Move pointer to the next character
+
+    li $t0, 48           # ASCII code for '0'
+    sb $t0, ($a0)        # Store '0' after the decimal point
+    addi $a0, $a0, 1     # Move pointer to the next character
+
+    j end_check
+
+read_integer:
+    addi $a0, $a0, 1     # Increment digit counter
+    j check_digit
+
+invalid_input:
+    li $v0, 0            # Set $v0 to 0 (not a float)
+    j end_check
+
+end_check:
+
+    beqz $t2,add_decimal_zero
+    # Restore $ra from the stack
+    lw   $ra, 0($sp)
+    # Deallocate space on the stack
+    addi $sp, $sp, 4
+    jr $ra               # Return
+
+
+#--------------------------------------------------------------------------  	   			
+
 # This function take the address of a string in $a0
 # Return 1 in $v1 if it is integer, 0 if not integer
 check_integer:
@@ -1219,6 +1464,30 @@ remove_newline:
         	addi $sp, $sp, 4
         	jr   $ra #back to where it was last used. 
         	
+ #------------------------------------------------------------------------------------			       	        	
+Invalid_test_result:
+    # Print error message for invalid test result
+    li $v0, 4               # System call code for printing string
+    la $a0, invalid_test_result_msg
+    syscall
+    
+    j take_results  
+        
+Invalid_Systolic_result:
+
+    li $v0, 4               # System call code for printing string
+    la $a0,invalid_test_result_msg
+    syscall
+    
+    j Systolic_label  
+Invalid_Diastolic_result:
+       
+    li $v0, 4               # System call code for printing string
+    la $a0, invalid_test_result_msg
+    syscall
+    
+    j Diastolic_label        	
+        	
  #------------------------------------------------------------------------------------			       	
 exit_program:
     # Print a message to inform the user that the program is exiting
@@ -1229,3 +1498,360 @@ exit_program:
     # Exit program
     li $v0, 10       		# system call code for exit program             	
     syscall
+#-----------------------------------------------------------------------------------
+
+#-----------------------function normal or nor normal------------------------------------------------------------
+check_normality:
+	# Allocate space on the stack for $ra
+	addi $sp, $sp, -4  
+	# Save $ra on the stack    
+	sw   $ra, 0($sp)  
+	
+	# Counter initlized to zero
+	li $t1,0
+	li $v1,0
+
+check:
+
+    lb $t0, 9($s1)         # Load the first byte from buffer
+
+    # Check the value of $t0
+    beq $t0, 72, end2_check  # If H, print Hgb
+    beq $t0, 76, end2_check2 # If L, print LDL
+    beq $t0, 66, check_B    # If B, check the second byte
+
+    j end2_check             # Jump to the end2 if none of the above conditions are met
+
+check_B:
+    lb $t1, 10($s1)         # Load the second byte from buffer
+    beq $t1, 71, end2_check3# If G, print BGT
+    beq $t1, 80, end2_check4 # If P, print BPT
+    j end2_check             # Jump to the end2 if the second byte is neither G nor P
+
+
+end2_check:
+    # Reset $t2 to point to the beginning of the bufferg of the buffer
+    move $t2, $s1          # $t2 points to the beginning of the bufferto the beginning of the buffer
+   move $t2 ,$s1 
+    
+    # Load the first byte
+    lb $t0, 23($t2)
+    # Check if the first byte is 49 (ASCII value for '1')
+    li $t8, 49
+    bne $t0, $t8, not_normal   # If not 49, jump to not_normal
+
+    li $t3, 0              # Initialize $t3 to store the sum
+    
+    
+sum_loop:
+    lb $t0, 23($t2)         # Load a byte from buffer
+    beq $t0, '.', check_sum   # If '.' is found, check the sum
+    add $t3, $t3, $t0      # Add the byte to the sum
+    addi $t2, $t2, 1       # Move to the next byte
+    j sum_loop
+    
+check_sum:
+    # Check if the sum is greater than 100 and less than 104
+    li $t4, 100            # Load 100 into $t4
+    blt $t3, $t4, not_normal   # If sum < 100, jump to not_normal
+    li $t5, 104            # Load 104 into $t5
+    bgt $t3, $t5, not_normal   # If sum > 104, jump to not_normal
+    
+    # If sum is 100 or 104, perform additional checks
+    beq $t3, $t4, check_decimal_100
+      beq $t3, $t5, check_decimal_104
+  #  beq $t3, $t5, check_decimal_104
+
+    # If sum is between 100 and 104, print "normal"
+    li $v0, 4               # syscall to print string
+    la $a0, normal_string   # Load the address of the string
+    syscall
+    j end2_check11
+    
+check_decimal_100:
+    # Load the next byte after '.' and check if it meets the condition for sum 100
+    addi $t2, $t2, 1       # Move to the next byte after '.'
+    lb $t0, 23($t2)        # Load the byte after '.'
+    
+    # Check if the number after '.' is 56 or above for sum 100
+    li $t6, 56             # Load 56 into $t6
+    bge $t0, $t6, print_normal   # If number >= 56, jump to print_normal
+    j not_normal    
+    
+check_decimal_104:
+    # Load the next byte after '.' and check if it meets the condition for sum 104
+    addi $t2, $t2, 1       # Move to the next byte after '.'
+    lb $t0, 23($t2)        # Load the byte after '.'
+    
+    # Check if the number after '.' is 50 or above for sum 104
+    li $t7, 50             # Load 50 into $t7
+    ble $t0, $t7, print_normal   # If number >= 50, jump to print_normal
+    j not_normal
+        
+print_normal :
+
+    li $v1,1
+    j end2_check11
+    
+not_normal:
+
+    li $v1,0
+    j end2_check11
+
+
+end2_program:
+    # Exit program
+    li $v0, 10          # syscall code for exit
+    syscall
+    # Continue with your code logic here
+    
+end2_check2:
+    # Reset $t2 to point to the beginning of the bufferg of the buffer
+    move $t2, $s1          # $t2 points to the beginning of the bufferto the beginning of the buffer
+    
+      # Load the first byte
+    lb $t0, 23($t2)
+    
+        # Check if the first byte is in the specified range
+    li $t4, 49             # ASCII value for '1'
+    li $t5, 57             # ASCII value for '9'
+    li $t6, 53             # ASCII value for '5'
+    li $t7, 54             # ASCII value for '6'
+    li $t8, 55             # ASCII value for '7'
+    li $t9, 56             # ASCII value for '8'
+    li $t3, 0              # Initialize $t3 to store the sum
+    
+
+check_first_byte:
+
+    beq $t0, $t4, sum_loop2
+    beq $t0, $t5, sum_loop2
+    beq $t0, $t6,sum_loop2
+    beq $t0, $t7,sum_loop2
+    beq $t0, $t8, sum_loop2
+    beq $t0, $t9, sum_loop2
+    
+    j not_normal 
+    
+sum_loop2:
+    lb $t0, 23($t2)         # Load a byte from buffer
+    beq $t0, '.', check_sum2   # If '.' is found, check the sum
+    add $t3, $t3, $t0      # Add the byte to the sum
+    addi $t2, $t2, 1       # Move to the next byte
+    j sum_loop2
+    
+check_sum2:
+    # Check if the sum is greater than 100 and less than 104
+    li $t4, 145            # Load 100 into $t4
+    bgt $t3, $t4, not_normal   # If sum > 104, jump to not_normal
+    li $t5, 101            # Load 104 into $t5
+    blt $t3, $t5, not_normal   # If sum > 104, jump to not_normal
+
+    # If sum is between 100 and 104, print "normal"
+    beq $t3, $t4, check_decimal_101
+    j print_normal 
+    
+check_decimal_101:
+    # Load the next byte after '.' and check if it meets the condition for sum 100
+    addi $t2, $t2, 1       # Move to the next byte after '.'
+    lb $t0, 23($t2)        # Load the byte after '.'
+    
+    # Check if the number after '.' is 56 or above for sum 100
+    li $t6, 48             # Load 56 into $t6
+    beq $t0, $t6, print_normal   # If number >= 56, jump to print_normal
+    j not_normal    
+    
+           
+
+end2_check3:
+    # Reset $t2 to point to the beginning of the bufferg of the buffer
+    move $t2, $s1          # $t2 points to the beginning of the bufferto the beginning of the buffer
+    
+    
+    # Load the first byte
+    lb $t0, 23($t2)
+    
+    # Check if the first byte is in the specified range
+
+    li $t5, 55             # ASCII value for '7'
+    li $t6, 56             # ASCII value for '8'
+    li $t7, 57             # ASCII value for '9'
+    li $t3, 0              # Initialize $t3 to store the sum
+    
+
+    beq $t0, $t5, sum_loop3
+    beq $t0, $t6,sum_loop3
+    beq $t0, $t7,sum_loop3
+    
+    j not_normal 
+
+    
+sum_loop3:
+    lb $t0, 23($t2)         # Load a byte from buffer
+    beq $t0, '.', check_sum3   # If '.' is found, check the sum
+    add $t3, $t3, $t0      # Add the byte to the sum
+    addi $t2, $t2, 1       # Move to the next byte
+    j sum_loop3
+    
+check_sum3:
+    # Check if the sum is greater than 100 and less than 104
+    li $t4, 103            # Load 100 into $t4
+    blt $t3, $t4, not_normal   # If sum < 100, jump to not_normal
+    li $t5, 114            # Load 104 into $t5
+    bgt $t3, $t5, not_normal   # If sum > 104, jump to not_normal
+
+    beq $t3, $t5, check_decimal_114
+
+    j print_normal 
+    
+check_decimal_114:
+    # Load the next byte after '.' and check if it meets the condition for sum 100
+    addi $t2, $t2, 1       # Move to the next byte after '.'
+    lb $t0, 23($t2)        # Load the byte after '.'
+    
+    # Check if the number after '.' is 56 or above for sum 100
+    li $t6, 48             # Load 56 into $t6
+    beq $t0, $t6, print_normal   # If number >= 56, jump to print_normal
+    j not_normal    
+    
+end2_check4:
+	li $t9,0
+    # Reset $t2 to point to the beginning of the bufferg of the buffer
+    move $t2, $s1          # $t2 points to the beginning of the bufferto the beginning of the buffer
+
+    
+    # Load the first byte
+    lb $t0, 23($t2)
+    
+
+    li $t5, 48             # ASCII value for '0'
+    li $t3, 0              # Initialize $t3 to store the sum
+    
+   bne $t0, $t5, sum_loop4
+       j not_normal 
+       
+sum_loop4:
+    lb $t0, 23($t2)         # Load a byte from buffer
+    beq $t0, '.', check_sum4   # If '.' is found, check the sum
+    add $t3, $t3, $t0      # Add the byte to the sum
+    addi $t9,$t9,1
+    addi $t2, $t2, 1       # Move to the next byte
+    j sum_loop4
+    
+check_sum4:
+    # Check if the sum is greater than 100 and less than 104
+    li $t4, 105            # Load 100 into $t4
+    blt $t3, $t4, not_normal   # If sum < 100, jump to not_normal
+    li $t5, 147           # Load 104 into $t5
+    bgt $t3, $t5, not_normal   # If sum > 104, jump to not_normal
+
+    beq $t3, $t5, check_decimal_147
+
+    j end2_check5
+
+check_decimal_147:
+    # Load the next byte after '.' and check if it meets the condition for sum 100
+    addi $t2, $t2, 1       # Move to the next byte after '.'
+    lb $t0, 23($t2)        # Load the byte after '.'
+    
+    # Check if the number after '.' is 56 or above for sum 100
+    li $t6, 48             # Load 56 into $t6
+    beq $t0, $t6, end2_check5  # If number >= 56, jump to print_normal
+    j not_normal    
+
+end2_check5:
+	
+    # Reset $t2 to point to the beginning of the bufferg of the buffer
+    move $t2, $s1          # $t2 points to the beginning of the bufferto the beginning of the buffer
+
+     beq $t9,2,cond2  
+    # Load the first byte
+    lb $t0, 30($t2)   
+        li $t3, 0              # Initialize $t3 to store the sum
+
+ 
+
+   # Check if the first byte is in the specified range
+           lb $t0, 30($t2)         # Load a byte from buffer
+    li $t5, 54            # ASCII value for '6'
+    li $t6, 55             # ASCII value for '7'
+    li $t8, 56             # ASCII value for '8'
+    li $t3, 0              # Initialize $t3 to store the sum
+
+    beq $t0, $t5, sum_loop5
+    beq $t0, $t6,sum_loop5
+    beq $t0, $t8,sum_loop5
+    
+    j not_normal 
+sum_loop5:    
+    lb $t0, 30($t2)         # Load a byte from buffer
+    beq $t0, '.', check_sum5   # If '.' is found, check the sum
+    add $t3, $t3, $t0      # Add the byte to the sum
+    addi $t2, $t2, 1       # Move to the next byte
+    j sum_loop5
+ cond2:
+    # Check if the first byte is in the specified rang
+        lb $t0, 29($t2)         # Load a byte from buffer
+        
+    li $t5, 54            # ASCII value for '6'
+    li $t6, 55             # ASCII value for '7'
+    li $t8, 56             # ASCII value for '8'
+    li $t3, 0              # Initialize $t3 to store 
+
+    beq $t0, $t5, done_cond
+    beq $t0, $t6,done_cond
+    beq $t0, $t8,done_cond
+    
+    j not_normal 
+    
+done_cond:
+    
+     lb $t0, 29($t2)         # Load a byte from buffer
+    beq $t0, '.', check_sum5   # If '.' is found, check the sum
+    add $t3, $t3, $t0      # Add the byte to the sum
+    addi $t2, $t2, 1       # Move to the next byte
+    j done_cond
+    
+check_decimal_104_2:
+    # Load the next byte after '.' and check if it meets the condition for sum 100
+    addi $t2, $t2, 1       # Move to the next byte after '.'
+    lb $t0, 30($t2)        # Load the byte after '.'
+    
+    # Check if the number after '.' is 56 or above for sum 100
+    li $t6, 48             # Load 56 into $t6
+    beq $t0, $t6, print_normal   # If number >= 56, jump to print_normal
+    j not_normal    
+        
+check_sum5:
+    # Check if the sum is greater than 100 and less than 104
+    li $t4, 102            # Load 100 into $t4
+    blt $t3, $t4, not_normal   # If sum < 100, jump to not_normal
+    li $t5, 104            # Load 104 into $t5
+    bgt $t3, $t5, not_normal   # If sum > 104, jump to not_normal
+
+    beq $t3, $t5, check_decimal_104_3
+
+    j print_normal 
+    
+check_decimal_104_3:
+    # Load the next byte after '.' and check if it meets the condition for sum 100
+    addi $t2, $t2, 1       # Move to the next byte after '.'
+    lb $t0, 29($t2)        # Load the byte after '.'
+    
+    # Check if the number after '.' is 56 or above for sum 100
+    li $t6, 48             # Load 56 into $t6
+    beq $t0, $t6, print_normal   # If number >= 56, jump to print_normal
+    j not_normal    
+              
+     end2_check11:		
+
+		# Restore $ra from the stack
+        		lw   $ra, 0($sp)
+        		# Deallocate space on the stack
+        		addi $sp, $sp, 4
+        		#back to where it was last used
+        		jr   $ra 
+        		
+        		
+#--------------------------------------------------------------------------------------------        		
+ 
