@@ -2237,7 +2237,6 @@ remove_newline:
 	# Save $ra on the stack    
 	sw   $ra, 0($sp)   
 	    
-	 # Copy the address of the string to $t0
 	addi $s5, $a0, 0   
 	# Initialize counter to 0    
 	addi $s6, $zero, 0     
@@ -2262,13 +2261,10 @@ remove_newline:
         		addi $s7, $zero, 0
         		# Replace newline character with null terminator     
         		sb   $s7, ($s5)       
-
     	end4:
-    	# Restore $ra from the stack
         	lw   $ra, 0($sp)
-        	# Deallocate space on the stack
         	addi $sp, $sp, 4
-        	jr   $ra #back to where it was last used. 
+        	jr   $ra 
  #------------------------------------------------------------------------------------		
  # This code used to copy the buffer in a0 into a1        	
 copy_loop:
