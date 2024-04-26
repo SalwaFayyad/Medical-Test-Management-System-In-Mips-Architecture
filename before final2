@@ -1,12 +1,15 @@
-# Here we have the data section
+#SALWA FATYYAD 1200430
+#REBAL ZABADE 1210162
 .data
 # Here we put the file path as the following form
 filename: .asciiz "C:\\Users\\User\\New folder\\medical.txt"
+#filename: .asciiz "C:\\Users\\Geinus\\Desktop\\Proj-Arch1Medical-Test-Management-System\\medical.txt"
 
 file_buffer: .space 1024
-search_buffer:.space 1024
-deleted_line_buffer: .space 128
-deleted_buffer: .space 1024
+search_buffer:.space 1024 #the buffer store the searched results
+deleted_line_buffer: .space 128 # the line want delete it
+deleted_buffer: .space 1024  # result buffer after delete and update
+deleted_line:.space 4 # to store the number of line
 result:         .word 0
 menue_space: .space 128 
 test_name: .space 128 
@@ -16,8 +19,7 @@ ID: .space 128
 append_test: .space 128
 Year: .space 128
 Month: .space 128
-test_result: .space 128
-deleted_line:.space 4
+test_result: .space 1024
 patientIDtemp:.space 128
 search_date:.space 128
 result_buffer  : .space 1024 # to store the search
@@ -28,14 +30,15 @@ LDL_buffer  :.space 2048
 BPT_buffer  :.space 2048     
 year1: .space 128
 year2: .space 128
-month1: .space 4
-month2: .space 4
+month1: .space 128
+month2: .space 128
 search_year: .space 128
 search_month: .space 128
-Diastolic:.space 128
-Systolic:.space 128
+Diastolic:.space 1024
+Systolic:.space 1024
+tempbuffer: .space 4
 # Menue texts
-menu_msg: .asciiz"\nWelcome to our System\n\n"
+menu_msg: .asciiz"\n           Welcome to our System\n"
 choice_1: .asciiz"1- Add new medical test\n"
 choice_2: .asciiz"2- Search for a test by patiant ID\n"
 choice_3: .asciiz"3- Searching for unnormal tests\n"
@@ -45,11 +48,11 @@ choice_6: .asciiz"6- Delete a test\n"
 choice_7: .asciiz"7- Exit from the program\n"
 print: .asciiz"********************************************\n"
 file_error_message: .asciiz "Error: File not found or could not be opened.\n"
-menu_prompt: .asciiz "# Menu - Search by Patient ID\nEnter your choice:\n1. Retrieve all patient tests\n2. Retrieve all abnormal patient tests\n3. Retrieve all patient tests in a specific period\n4. Back\n"
+menu_prompt: .asciiz "********************************************\n# Menu - Search by Patient ID\nEnter your choice:\n1. Retrieve all patient tests\n2. Retrieve all abnormal patient tests\n3. Retrieve all patient tests in a specific period\n4. Back\n********************************************\n"
 read_choice: .asciiz"Your choice: "
 no_such_choice: .asciiz"There is no choice with this number, try again\n"
 take_ID_msg: .asciiz"Enter the patiant ID: "
-take_test_name:.asciiz"Select test name\n1- Hemoglobin (Hgb)\n2- Blood Glucose Test (BGT)\n3- Cholesterol Low-Density Lipoprotein(LDL)\n4- Blood Pressure Test (BPT)\nEnter the number of the test only\nYour choice: "
+take_test_name:.asciiz"********************************************\nSelect test name\n1- Hemoglobin (Hgb)\n2- Blood Glucose Test (BGT)\n3- Cholesterol Low-Density Lipoprotein(LDL)\n4- Blood Pressure Test (BPT)\nEnter the number of the test only\n********************************************\nYour choice: "
 take_year_msg: .asciiz"Enter the Year of the test : "
 take_month_msg: .asciiz"Enter the Month of the test : "
 take_test_result_msg: .asciiz"Enter the test result : "
@@ -62,7 +65,6 @@ not_integer_month: .asciiz"The month must be an integer number, try again...\n"
 not_4digits_msg:.asciiz"The Year must be 4 digits only, try again...\n"
 exit_msg: .asciiz"Exitting from the program ...\n"
 invalid_test_result_msg: .asciiz"Not valid test result, try again ...\n"
-invalid_test_msg: .asciiz"Out of range test result, write it again...\n"
 patientIDSearch_msg: .asciiz"Enter the patiant ID to search: "
 not_found_message:  .asciiz "Patient ID not found.\n"
 enter_deleted_line_msg: .asciiz"Enter number of line want : "
@@ -84,154 +86,135 @@ BPT:.asciiz"BPT"
 .text
 .globl	main
 main:
-# Open a file for reading
-li $v0, 13          # System call for open file
-la $a0, filename    # File name
-li $a1, 0
-syscall
+	# Open a file for reading
+	li $v0, 13		# Branch if file opened successfully
+	la $a0, filename
+	li $a1, 0
+	syscall
+	
+	bgez $v0, file_opened   # Branch if file opened successfully
+	# File not found or error occurred	
+	li $v0, 4           	# Print string system call
+	la $a0, file_error_message
+	syscall
 
-# Check if file opened successfully
-bgez $v0, file_opened   # Branch if file opened successfully
+	j exit_program		# Jump to exit program
 
-# File not found or error occurred
-li $v0, 4           # Print string system call
-la $a0, file_error_message
-syscall
+	file_opened:	
+    	move $s0, $v0   	# Save the file descriptor
 
-j exit_program      # Jump to exit program
+    	# Read from file
+    	li $v0, 14
+    	move $a0, $s0     	# File descriptor
+    	la $a1, file_buffer    # Store file content into the buffer
+    	li $a2, 1024           # Hardcoded input length
+    	syscall
 
-file_opened:
-    move $s0, $v0   # Save the file descriptor
+    	# Close the file 
+    	li $v0, 16
+    	move $a0, $s0
+    	syscall
 
-    # Read from file
-    li $v0, 14
-    move $a0, $s0                # File descriptor
-    la $a1, file_buffer          # Store file content into the buffer
-    li $a2, 1024                 # Hardcoded input length
-    syscall
-
-    # Close the file 
-    li $v0, 16
-    move $a0, $s0
-    syscall
-
-    j menu          # Jump to the menu
-
+    	j menu          # Jump to the menu
 #----------------------------------------------------
 menu:
 	la $t1,ID
 	li $t1,0
-	# Print menu message
-    	li $v0, 4	     # system call code for printing a string
-    	la $a0, menu_msg  # address of the message
+	li $v0, 4
+    	la $a0, menu_msg
     	syscall                
-    	
-    	# Print choice 1
-    	li $v0, 4	     # system call code for printing a string
-    	la $a0, choice_1  # address of the message
+        la $a0, print
+        li $v0, 4
+        syscall    	
+    	li $v0, 4
+    	la $a0, choice_1
     	syscall    
     	
-    	# Print choice 2
-    	li $v0, 4	     # system call code for printing a string
-    	la $a0, choice_2     # address of the message
+    	li $v0, 4
+    	la $a0, choice_2
     	syscall  
     	
-    	# Print choice 3
-    	li $v0, 4	     # system call code for printing a string
-    	la $a0, choice_3     # address of the message
+    	li $v0, 4
+    	la $a0, choice_3
     	syscall  
     	
-    	# Print choice 4
-    	li $v0, 4	     # system call code for printing a string
-    	la $a0, choice_4     # address of the message
+    	li $v0, 4
+    	la $a0, choice_4
     	syscall  
     	
-    	# Print choice 5
-    	li $v0, 4	     # system call code for printing a string
-    	la $a0, choice_5     # address of the message
+    	li $v0, 4
+    	la $a0, choice_5
     	syscall  
     	
-    	# Print choice 6
-    	li $v0, 4	     # system call code for printing a string
-    	la $a0, choice_6     # address of the message
+    	li $v0, 4
+    	la $a0, choice_6
     	syscall  
     	
-    	# Print choice 7
-    	li $v0, 4	     # system call code for printing a string
-    	la $a0, choice_7     # address of the message
+    	li $v0, 4
+    	la $a0, choice_7
     	syscall  
     	
-    	# Ask user to choose a choice
-    	li $v0, 4	        # system call code for printing a string
-    	la $a0, read_choice  # address of the message
+        la $a0, print
+        li $v0, 4
+        syscall	
+           	
+    	li $v0, 4
+    	la $a0, read_choice
     	syscall  
     	
-    	# Read a number from the user
-    	li $v0, 8                # system call code for reading an integer
+    	li $v0, 8
     	la $a0,menue_space 
-   	syscall                  # read the character from the console
-   	   # Store the entered value in $t5
-        move $t5, $v0        # Move the value from $v0 to $t5
-    
-   	
-   	# Check if the ID is integer
+   	syscall                  
+        move $t5, $v0
+   
 	la $a0,menue_space 
 	la $a1,menue_space 
-	jal check_integer	#call the function
-	
-	# If the returned value ($v1) is 1 then continue
-	beq $v1,1,GO
+	jal check_integer	
+
+	beq $v1,1,GO	# If the returned value ($v1) is 1 then continue
 	
 	# If the returned value ($v1) is 0 then try again
 	li $v0,4
 	la $a0,not_integer_msg
 	syscall
+
 	j menu
 	
 GO:
-# If he chose choice 1
-lb $t0, 0($a1)          # Load the first byte of the entered choice
-lb $t1, 1($a1)          # Load the second byte of the entered choice
-li $t2, '1'             # ASCII value of '1'
-li $t4, '2'             # ASCII value of '2'
-li $t5, '3'             # ASCII value of '3'
-li $t6, '4'             # ASCII value of '4'
-li $t7, '5'             # ASCII value of '5'
-li $t8, '6'             # ASCII value of '6'
-li $t9,'7'
+	# If he chose choice 1
+	lb $t0, 0($a1)          # Load the first byte of the entered choice
+	lb $t1, 1($a1)          # Load the second byte of the entered choice
+	li $t2, '1'             # ASCII value of '1'
+	li $t4, '2'             # ASCII value of '2'
+	li $t5, '3'             # ASCII value of '3'
+	li $t6, '4'             # ASCII value of '4'
+	li $t7, '5'             # ASCII value of '5'
+	li $t8, '6'             # ASCII value of '6'
+	li $t9,'7'
 
-li $t3,10               # ASCII value of null terminator
-j check_null
-
-
-
+	li $t3,10               # ASCII value of null terminator
+	j check_null
+	
 check_null:
-beq $t1, $t3, Selection_check # Proceed to choice if only one byte was entered
-j no_Selection_check 
+	beq $t1, $t3, Selection_check # Proceed to choice if only one byte was entered
+	j no_Selection_check 
 
 Selection_check  :
-beq $t0, $t2, Add_test
-beq $t0, $t4, search_by_ID
-beq $t0, $t5, search_unnormal
-beq $t0, $t6, cal_Avg
-beq $t0, $t7, Delete_update_process
-beq $t0, $t8, Delete_update_process
-beq $t0, $t9, exit_program
-
-
-# If the second byte is null terminator, it's a single-digit choice
+	beq $t0, $t2, Add_test
+	beq $t0, $t4, search_by_ID
+	beq $t0, $t5, search_unnormal
+	beq $t0, $t6, cal_Avg
+	beq $t0, $t7, Delete_update_process
+	beq $t0, $t8, Delete_update_process
+	beq $t0, $t9, exit_program
 
 no_Selection_check :
-# If the first byte doesn't match '1', or if the second byte is not null, it's an invalid choice
-li $v0, 4
-la $a0, no_such_choice
-syscall
-j menu                  # Go back to the menu
-
-
-#---------------------------------------------------------------------------
+	li $v0, 4
+	la $a0, no_such_choice
+	syscall
+	j menu         
+##############################Add_test############################################
 Add_test:
-
         jal take_id
         jal take_testname
         jal take_year_month
@@ -241,10 +224,8 @@ Add_test:
         la $a1, ID
    	j append_patient
 take_id:
-	    # Allocate space on the stack for $ra
-    addi $sp, $sp, -4  
-    # Save $ra on the stack    
-    sw   $ra, 0($sp)
+    	addi $sp, $sp, -4	# Allocate space on the stack for $ra
+    	sw   $ra, 0($sp)  	# Save $ra on the stack    
 
 	# Start adding test
 	li $v0,4
@@ -256,7 +237,6 @@ take_id:
 	la $a0, ID	# Store the read number in ID
 	syscall
 	
-     
 	# Check if the ID is integer
 	la $a0,ID
 	jal check_integer	#call the function
@@ -271,44 +251,33 @@ take_id:
 	j take_id
 	
 continue_add:	
-
 	# Check if the ID is 7 digits onl
 	la $a0,ID
 	jal check_7digits	#call the function
 	la $a0,ID
 	jal remove_newline			
-	# If the ID is 7 digits then continue
-	beq $v1,1,continue_add2
-
+	beq $v1,1,continue_add2 	# If the ID is 7 digits then continue
 	# If it is not 7 digits then try again
 	li $v0,4
 	la $a0,not_7digits_msg
 	syscall
-	
 	j take_id
 
 continue_add2:
-    # If the ID is valid, return
-     # Restore $ra from the stack
-    lw   $ra, 0($sp)
-    # Deallocate space on the stack
-    addi $sp, $sp, 4
-    jr $ra               # Return
-    
+  	# If the ID is valid, return
+	lw   $ra, 0($sp)    # Restore $ra from the stack
+	addi $sp, $sp, 4    # Deallocate space on the stack
+  	jr $ra              # Return
     
 take_testname:    
 	# Now lets move to the test name
-    # Allocate space on the stack for $ra
-    addi $sp, $sp, -4  
-    # Save $ra on the stack    
-    sw   $ra, 0($sp)
-    
-    		
+	addi $sp, $sp, -4      # Allocate space on the stack for $ra
+	sw   $ra, 0($sp)       # Save $ra on the stack    
+    	
 	li $v0,4
 	la $a0,take_test_name
 	syscall
 	
-
 	# Read patiant test name from the user
 	li $v0,8	# System call code for reading a string
 	la $a0, test_num	# Store the read number 
@@ -330,22 +299,16 @@ take_testname:
 GO1:	
 	j check_test_name
 	
-
-	
 continue_add3:
-    # Restore $ra from the stack
-    lw   $ra, 0($sp)
-    # Deallocate space on the stack
-    addi $sp, $sp, 4
-    jr $ra               # Return
-    
-    
+	# Restore $ra from the stack
+	lw   $ra, 0($sp)
+	addi $sp, $sp, 4     # Deallocate space on the stack
+ 	jr $ra               # Return
+       
 take_year_month:	# Now lets take the date
-
-    # Allocate space on the stack for $ra
-    addi $sp, $sp, -4  
-    # Save $ra on the stack    
-    sw   $ra, 0($sp)
+        addi $sp, $sp, -4      # Allocate space on the stack for $ra
+        sw   $ra, 0($sp)        # Save $ra on the stack    
+    
 take_year:    
 	li $v0,4
 	la $a0,take_year_msg
@@ -369,7 +332,6 @@ take_year:
 	syscall
 	j take_year
 	
-	
 continue_add4:
 	# Check if the Year is 4 digits only
 	la $a0,Year
@@ -384,89 +346,78 @@ continue_add4:
 	syscall
 	j take_year
 
-#........................................
 continue_add5:
-    # Load the address of the string (Year) into $a0
-    la $a0, Year           
-    jal remove_newline
-    # Call the to_integer function to convert the string to an integer
-    jal Year_to_Integer
-    # Retrieve the integer value returned from to_integer
-    move $t0, $v1
-
-    # Check if the year is within an acceptable range (2000 to 2024)
-    li $t1, 2000            # Lower bound of the acceptable range
-    li $t2, 2024            # Upper bound of the acceptable range
-    ble $t0, $t1, not_valid_year # If year is less than or equal to 2000, not valid
-    bgt $t0, $t2, not_valid_year # If year is greater than 2024, not valid
-
-    j continue_add6 # If the year is within the acceptable range, proceed to continue_add6
+    	# Load the address of the string (Year) into $a0
+    	la $a0, Year           
+    	jal remove_newline
+    	# Call the to_integer function to convert the string to an integer
+    	jal strToInt
+    	# Retrieve the integer value returned from to_integer
+    	move $t0, $v1
+    	# Check if the year is within an acceptable range (2000 to 2024)
+    	li $t1, 2000            # Lower bound of the acceptable range
+    	li $t2, 2024            # Upper bound of the acceptable range
+    	ble $t0, $t1, not_valid_year # If year is less than or equal to 2000, not valid
+    	bgt $t0, $t2, not_valid_year # If year is greater than 2024, not valid
+        j continue_add6 # If the year is within the acceptable range, proceed to continue_add6
 
 not_valid_year:
-    # Print error message
-    li $v0, 4
-    la $a0, not_valid_year_msg
-    syscall
-    
-    # Try again
-    j take_year
+	# Print error message
+	li $v0, 4
+	la $a0, not_valid_year_msg
+	syscall
+	j take_year 	# Try again
 
 continue_add6:
-    # Now lets take the date (month)
-    li $v0,4
-    la $a0,take_month_msg
-    syscall
+	# Now lets take the date (month)
+	li $v0,4
+	la $a0,take_month_msg
+	syscall
     
-    # Read month from the user
-    li $v0,8    # System call code for reading a string
-    la $a0, Month   # Store the read number in month
-    syscall
+	# Read month from the user
+	li $v0,8    # System call code for reading a string
+	la $a0, Month   # Store the read number in month
+	syscall
     
-    # Check if the month is integer
-    la $a0,Month
-    jal check_integer    #call the function
+	# Check if the month is integer
+	la $a0,Month
+	jal check_integer    #call the function
     
-    # If the returned value ($v1) is 1 then continue
-    beq $v1,1,continue_add7
+    	# If the returned value ($v1) is 1 then continue
+    	beq $v1,1,continue_add7
     
-    # If the returned value ($v1) is 0 then try again
-    li $v0,4
-    la $a0,not_integer_month
-    syscall 
+    	# If the returned value ($v1) is 0 then try again
+    	li $v0,4
+    	la $a0,not_integer_month
+    	syscall 
     
-    # Return to adding month again
-    j continue_add6
+   	 # Return to adding month again
+    	j continue_add6
     
 continue_add7:
-    # Check if the month is between 1 and 12
-    la $a0, Month      
-    jal remove_newline
-    # Call the to_integer function to convert the string to an integer
-    jal Month_to_Integer
-    move $t1, $v1
-    li $t2, 1               # Lower bound of the acceptable range
-    li $t3, 12              # Upper bound of the acceptable range
-    blt $t1, $t2, invalid_month # If month is less than 1, it's invalid
-    bgt $t1, $t3, invalid_month # If month is greater than 12, it's invalid
-
-    j continue_add8                  # If the month is valid, return to the menu
+   	 # Check if the month is between 1 and 12
+    	la $a0, Month      
+    	jal remove_newline
+    	#Call the to_integer function to convert the string to an integer
+    	jal Month_to_Integer
+    	move $t1, $v1
+    	li $t2, 1               # Lower bound of the acceptable range
+    	li $t3, 12              # Upper bound of the acceptable range
+    	blt $t1, $t2, invalid_month # If month is less than 1, it's invalid
+    	bgt $t1, $t3, invalid_month # If month is greater than 12, it's invalid
+        j continue_add8                  # If the month is valid, return to the menu
 
 invalid_month:
-    # Print error message
-    li $v0, 4
-    la $a0, invalid_month_msg
-    syscall                 
-    
-    # Return to adding month again
-    j continue_add6
+    	li $v0, 4    # Print error message
+    	la $a0, invalid_month_msg
+   	syscall                 
+    	j continue_add6    # Return to adding month again
 
 continue_add8:
-    # Restore $ra from the stack
-    lw   $ra, 0($sp)
-    # Deallocate space on the stack
-    addi $sp, $sp, 4
-    jr $ra               # Return
-################# NOTE THAT T1 IS THE MONTH
+   	 lw   $ra, 0($sp)     # Restore $ra from the stack
+    	 addi $sp, $sp, 4    # Deallocate space on the stack
+   	 jr $ra               # Return
+##############################NOTE THAT T1 IS THE MONTH###########################################
 
 take_results:
         # Allocate space on the stack for $ra
@@ -507,36 +458,40 @@ take_test:
 Bpt_test:
 
 Systolic_label:    
+la $s0,Systolic
+jal initialize_to_zero
     li $v0,4 
     la $a0,Systolic_msg
     syscall
+    
     li $v0,8	# System call code for reading a string
     la $a0, Systolic	# Store the read number in ID
     syscall    
 
-    la $a0,Systolic
     jal remove_newline
     jal check_float
     beq $v0, $zero, Invalid_Systolic_result    
     
-Diastolic_label:            
+Diastolic_label:      
+la $s0,Diastolic
+jal initialize_to_zero
     li $v0,4 
     la $a0,Diastolic_msg
     syscall
+    
     li $v0,8	# System call code for reading a string
     la $a0, Diastolic	# Store the read number in ID
     syscall    
     
-    la $a0,Diastolic
     jal remove_newline
     jal check_float
-    beq $v0, $zero, Invalid_Diastolic_result                      
+    beq $v0, $zero, Invalid_Diastolic_result              
+
     # Restore $ra from the stack
     lw   $ra, 0($sp)
     # Deallocate space on the stack
     addi $sp, $sp, 4
     jr $ra               # Return
-
 
  #-------------------------------------------------------------------------------------- 
 ###################### OPTION 2 #########################################################
@@ -586,8 +541,6 @@ search1_1:
 	j search1_1
 
 GO3:
-
-
 # If he chose choice 1e choice 1
 # If he chose choice 1
 lb $t0, 0($a1)          # Load the first byte of the entered choice
@@ -598,7 +551,6 @@ li $t5, '3'             # ASCII value of '1'
 li $t6, '4'             # ASCII value of '1'
 li $t3,10               # ASCII value of null terminator
  
-
 j check_null2
 
 check_null2:
@@ -606,10 +558,18 @@ beq $t1, $t3, Selection_check2 # Proceed to choice if only one byte was entered
 j no_Selection_check2 
 
 Selection_check2:
-	j Find_id
-# If the second byte is null terminator, it's a single-digit choice
+ 
+la $a0, tempbuffer
+sb $t0,($a0)
+jal strToInt
+
+blt $v1,1,no_Selection_check2
+bgt $v1,4,no_Selection_check2
+beq $v1, 3, date_search 
+beq $v1, 4, back_to_menue
+j comple
+
 no_Selection_check2 :
-# If the first byte doesn't match '1', or if the second byte is not null, it's an invalid choice
 li $v0, 4
 la $a0, no_such_choice
 syscall
@@ -617,18 +577,7 @@ j search1_1                  # Go back to the menu
 
 back_to_menue:
 	j menu
-Find_id:
 
-li $t2, '1'             # ASCII value of '1'
-li $t4, '2'             # ASCII value of '1'
-li $t5, '3'             # ASCII value of '1'
-li $t6, '4'             # ASCII value of '1'
-
-    la $a1,menu_search_id
-    lb $t0, 0($a1)          # Load the first byte of the entered choice
-  beq $t0, $t5, date_search# If the first byte matches '2', proceed to choice 1
-  j comple
-  
 date_search:    
    jal take_year_month	  
    la $t0, Year       
@@ -680,17 +629,19 @@ month2loop:
 end2month:
 	
 la $a0,year1
-jal Year_to_Integer
+jal strToInt
 move $t0,$v1
 move $t1,$t0
+move $t2,$t1
 
 la $a0,year2
-jal Year_to_Integer
-move $t2,$v1
-move $t3,$t0
-
-beq $t1,$t3,checkmonth
-bgt $t1,$t3,swapyears
+jal strToInt
+move $t3,$v1
+move $t4,$t3
+move $t5,$t4 
+  
+beq $t2,$t5,checkmonth
+bgt $t2,$t5,swapyears
 
 j comple
 ########
@@ -740,8 +691,7 @@ swap2strings:
     addi $t0, $t0, 1  # Move to the next character in str1
     addi $t1, $t1, 1  # Move to the next character in str2
     bnez $t2, swap2strings  # If str1 is not null-terminated, continue swapping		
-    
-					 										 																		 										 																		 										 																		 										 																		 										 																	 										 																		 										 																		 										 																		 										 																		 										 										
+      					 										 																		 										 																		 										 																		 										 																		 										 																	 										 																		 										 																		 										 																		 										 																		 										 										
 comple:
     # Set up pointers for search
     la $s0, file_buffer          # Load address of file_buffer
@@ -810,7 +760,7 @@ show_all_test:
 
      jal check_normality
      
-     beq $v1,1,print_line
+     bne $v1,1,print_line
 
      la $t7, patientIDtemp        # Load address of patientIDtemp
      j pp
@@ -851,19 +801,19 @@ loop:    # Loop through the line
 check_year:
 
 la $a0,year1
-jal Year_to_Integer
+jal strToInt
 move $t0,$v1
 move $t1,$t0
 move $t2,$t1
 
 la $a0,year2
-jal Year_to_Integer
+jal strToInt
 move $t3,$v1
 move $t4,$t3
 move $t5,$t4
 
 la $a0,search_year
-jal Year_to_Integer
+jal strToInt
 move $t6,$v1
 move $t7,$t6
 move $t9,$t7
@@ -875,6 +825,7 @@ blt $t9,$t2,not_found   # check if t5 < $t1
 bgt $t9,$t5,not_found   # check if t5 > $t3
 
 found:
+    li $t8,1
     j print_line
     
 not_found:
@@ -939,11 +890,11 @@ print_line:
     lb $t0, 0($s1)
     beqz $t0, end_print_line
     beq $t0, 10, end_print_line
-    li $t8,1
+
     li $v0, 11
     move $a0, $t0
     syscall
-
+    li $t8,1
     addi $s1, $s1, 1
     j print_line
 
@@ -1203,7 +1154,7 @@ choice_deleted_line:
    
 continue:
    la $a0,deleted_line	
-   jal atoi
+   jal strToInt
    # now v1 contain the deleted line
    bgt $v1, $t3, greater_than_t3  # If deleted_line > t3, jump to greater_than_t3
    blez $v1, less_than_or_equal_zero  # If deleted_line <= 0, jump to less_than_or_equal_zero
@@ -1997,6 +1948,7 @@ check_float:
     # Save $ra on the stack    
     sw   $ra, 0($sp)
 
+
     li $v0, 1            # Assume it's a float
     li $t0, 0            # Counter for digits before decimal point
     li $t1, 0            # Counter for digits after decimal point
@@ -2179,40 +2131,26 @@ loop_check2:
 	# Return from the function
 	jr $ra            
 
-#------------------------------------Year_to_Integer-------------------------------------------------------------
-#-------- This method to convert the year into integer -----
-Year_to_Integer:
-	#this is a function to convert an ascii number
-	#to integer, its address stored in $a0
-	#return the number in $v1
-	
-	addi $sp, $sp, -4
-    	sw $ra, 0($sp)
-    	
-    	lb $t6,3($a0)
-	lb $t7,2($a0)
-	lb $t8,1($a0)
-	lb $t9,0($a0)
-	
+#------------------------------------strToInt-------------------------------------------------------------
+strToInt:
+#to integer, its address stored in $a0
+#return the number in $v1
+addi $sp, $sp, -4
+sw $ra, 0($sp)
 
-four_Digit:
-#2022
-    # Convert each ASCII character representing a digit to its corresponding integer value
-    addi $t6, $t6, -48   # Convert thousands digit
-    addi $t7, $t7, -48   # Convert hundreds digit
-    addi $t8, $t8, -48   # Convert tens digit
-    addi $t9, $t9, -48   # Convert ones digit
-    
-    # Combine the individual digits to form the four-digit year
-    mul $t7, $t7, 10     # Multiply the hundreds digit by 10
-    mul $t8, $t8, 100    # Multiply the tens digit by 100
-    mul $t9, $t9, 1000   # Multiply the ones digit by 1000
-    
-    add $v1, $t6, $t7    # Add thousands and hundreds
-    add $v1, $v1, $t8    # Add tens
-    add $v1, $v1, $t9    # Add ones
+li $v1, 0 # Initialize: $v0 = sum = 0
+li $t0, 10 # Initialize: $t0 = 10
+L1: 
+lb $t1, 0($a0) # load $t1 = str[i]
+blt $t1, '0', donne # exit loop if ($t1 < '0')
+bgt $t1, '9', donne # exit loop if ($t1 > '9')
+addiu $t1, $t1, -48 # Convert character to digit
+mul $v1, $v1, $t0 # $v0 = sum * 10
+addu $v1, $v1, $t1 # $v0 = sum * 10 + digit
+addiu $a0, $a0, 1 # $a0 = address of next char
+j L1 # loop back
 
-    move $t0, $v1
+donne: 
       	# Restore the return address from the stack
 	lw $ra, ($sp) 
 	# Deallocate space on the stack        
@@ -2261,41 +2199,6 @@ oneDigit:
 
         move $t1, $v1
 	
-	# Restore the return address from the stack
-	lw $ra, ($sp) 
-	# Deallocate space on the stack        
-	addi $sp, $sp, 4      
-	# Return from the function
-	jr $ra 
-#----------------------------------------------------------------
-atoi:
-	#this is a function to convert an ascii number
-	#to integer, its address stored in $a0
-	#return the number in $v1
-	
-	addi $sp, $sp, -4
-    	sw $ra, 0($sp)
-    	
-	lb $t8,0($a0)
-	lb $t9,1($a0)
-	blt $t9,48,oneDigitt
-	bgt $t9,57,oneDigitt
-twoDigitt:
-	addi $t8,$t8,-48
-	mul $t8,$t8,10
-	addi $t9,$t9,-48
-	add $v1,$t8,$t9
-  	
-  	# Restore the return address from the stack
-	lw $ra, ($sp) 
-	# Deallocate space on the stack        
-	addi $sp, $sp, 4      
-	# Return from the function
-	jr $ra 
-oneDigitt:
-	addi $t8,$t8,-48
-	move $v1,$t8
-  	
 	# Restore the return address from the stack
 	lw $ra, ($sp) 
 	# Deallocate space on the stack        
@@ -2806,8 +2709,7 @@ syscall
 
 j menu
     
-        
-                
+                   
 Calculate_Avg_Hgb:
     # Calculate average for Hgb_buffer
     la $s0, Hgb_buffer          # Load address of file_buffer
@@ -3203,8 +3105,6 @@ end_append2:
     
     
     end3:
-    
-    		# Restore $ra from the stack
         		lw   $ra, 0($sp)
         		# Deallocate space on the stack
         		addi $sp, $sp, 4
@@ -3213,7 +3113,7 @@ end_append2:
                            jr $ra                  # Return from subroutine
 
                            
-   ####################### Function to convert string to integer#################################
+####################### Function to convert string to integer#################################
 
 convertStringToInt:
     # Allocate space on the stack for $ra and $k0
@@ -3257,10 +3157,8 @@ not_digittt:
 doneee:
     # Store the integer result
     sw $t2, result
-    # Store the number of digits in $k0
     move $k0, $t4
     
-    # Restore $ra and $k0 from the stack
     lw $k0, 0($sp)
     lw $ra, 4($sp)
     addi $sp, $sp, 8
@@ -3268,7 +3166,6 @@ doneee:
     # Return from subroutine
     jr $ra	    
              
-        		
  #------------------------------------------------------------------------------------			       	        		
 
 print_buffer:  ### S0 hold the printed buffer
@@ -3297,11 +3194,9 @@ end_print:
     jr   $ra     #back to where it was last used     
  #------------------------------------------------------------------------------------			       	
 exit_program:
-    # Print a message to inform the user that the program is exiting
-    li $v0, 4             		# system call code for printing a string
-    la $a0, exit_msg      	# address of the message
-    syscall                	# print the message
+    li $v0, 4             
+    la $a0, exit_msg      
+    syscall  
     
-    # Exit program
     li $v0, 10       		# system call code for exit program             	
     syscall	
