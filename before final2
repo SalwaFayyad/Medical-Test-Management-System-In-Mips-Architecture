@@ -1,87 +1,86 @@
-#SALWA FATYYAD 1200430
-#REBAL ZABADE 1210162
-.data
-# Here we put the file path as the following form
-filename: .asciiz "C:\\Users\\User\\New folder\\medical.txt"
-#filename: .asciiz "C:\\Users\\Geinus\\Desktop\\Proj-Arch1Medical-Test-Management-System\\medical.txt"
-
-file_buffer: .space 1024
-search_buffer:.space 1024 #the buffer store the searched results
-deleted_line_buffer: .space 128 # the line want delete it
-deleted_buffer: .space 1024  # result buffer after delete and update
-deleted_line:.space 4 # to store the number of line
-result:         .word 0
-menue_space: .space 128 
-test_name: .space 128 
-menu_search_id: .space 128 
-test_num: .space 128 
-ID: .space 128
-append_test: .space 128
-Year: .space 128
-Month: .space 128
-test_result: .space 1024
-patientIDtemp:.space 128
-search_date:.space 128
-result_buffer  : .space 1024 # to store the search
-ID_testname_append: .space 128
-Hgb_buffer  :.space 2048 
-BGT_buffer  :.space 2048 
-LDL_buffer  :.space 2048 
-BPT_buffer  :.space 2048     
-year1: .space 128
-year2: .space 128
-month1: .space 128
-month2: .space 128
-search_year: .space 128
-search_month: .space 128
-Diastolic:.space 1024
-Systolic:.space 1024
-tempbuffer: .space 4
-# Menue texts
-menu_msg: .asciiz"\n           Welcome to our System\n"
-choice_1: .asciiz"1- Add new medical test\n"
-choice_2: .asciiz"2- Search for a test by patiant ID\n"
-choice_3: .asciiz"3- Searching for unnormal tests\n"
-choice_4: .asciiz"4- Average test value\n"
-choice_5: .asciiz"5- Update an existing test result\n"
-choice_6: .asciiz"6- Delete a test\n"
-choice_7: .asciiz"7- Exit from the program\n"
-print: .asciiz"********************************************\n"
-file_error_message: .asciiz "Error: File not found or could not be opened.\n"
-menu_prompt: .asciiz "********************************************\n# Menu - Search by Patient ID\nEnter your choice:\n1. Retrieve all patient tests\n2. Retrieve all abnormal patient tests\n3. Retrieve all patient tests in a specific period\n4. Back\n********************************************\n"
-read_choice: .asciiz"Your choice: "
-no_such_choice: .asciiz"There is no choice with this number, try again\n"
-take_ID_msg: .asciiz"Enter the patiant ID: "
-take_test_name:.asciiz"********************************************\nSelect test name\n1- Hemoglobin (Hgb)\n2- Blood Glucose Test (BGT)\n3- Cholesterol Low-Density Lipoprotein(LDL)\n4- Blood Pressure Test (BPT)\nEnter the number of the test only\n********************************************\nYour choice: "
-take_year_msg: .asciiz"Enter the Year of the test : "
-take_month_msg: .asciiz"Enter the Month of the test : "
-take_test_result_msg: .asciiz"Enter the test result : "
-not_integer_msg: .asciiz"The Entered value must be an integer number, try again...\n"
-not_7digits_msg:.asciiz"The ID must be 7 digits only, try again...\n"
-not_valid_year_msg: .asciiz"Not valid year number, try again ...\n"
-not_integer_year: .asciiz"The year must be an integer number, try again...\n"
-invalid_month_msg: .asciiz"Not valid month number, try again ...\n"
-not_integer_month: .asciiz"The month must be an integer number, try again...\n"
-not_4digits_msg:.asciiz"The Year must be 4 digits only, try again...\n"
-exit_msg: .asciiz"Exitting from the program ...\n"
-invalid_test_result_msg: .asciiz"Not valid test result, try again ...\n"
-patientIDSearch_msg: .asciiz"Enter the patiant ID to search: "
-not_found_message:  .asciiz "Patient ID not found.\n"
-enter_deleted_line_msg: .asciiz"Enter number of line want : "
-id_not_found_message: .asciiz "There is no medical file for this patient\n"
-Systolic_msg:.asciiz"Enter Systolic Blood Pressure: "
-Diastolic_msg:.asciiz"Enter Diastolic Blood Pressure: "
-less_than_or_equal_zero_msg: .asciiz "Error: The entered line number must be greater than 0.\n"
-greater_than_t3_msg: .asciiz "Error: The entered line number exceeds the maximum line number.\n"
-Avg_Hgb:.asciiz "\nThe Average value for medical Test Hgb =  "
-Avg_BGT:.asciiz "\nThe Average value for medical Test BGT =  "
-Avg_LDL:.asciiz "\nThe Average value for medical Test LDL =  "
-Avg_BPT1:.asciiz "\nThe Average value for medical Test BPT (Systolic Blood Pressure) =  "
-Avg_BPT2:.asciiz "\nThe Average value for medical Test BPT (Diastolic Blood Pressure) =  "
-Hgb:.asciiz"Hgb"
-BGT:.asciiz"BGT"
-LDL:.asciiz"LDL"
-BPT:.asciiz"BPT"    
+    #SALWA FATYYAD 1200430
+    #REBAL ZABADE 1210162
+.data   
+    # Here we put the file path as the following form
+    filename:                   .asciiz "C:\\Users\\User\\New folder\\medical.txt"
+    #filename:                   .asciiz "C:\\Users\\Geinus\\Desktop\\Proj-Arch1Medical-Test-Management-System\\medical.txt"
+file_buffer:                    .space  1024
+search_buffer:                  .space  1024                                                                                                                                                                                                                                                                                            #the buffer store the searched results
+deleted_line_buffer:            .space  128                                                                                                                                                                                                                                                                                             # the line want delete it
+deleted_buffer:                 .space  1024                                                                                                                                                                                                                                                                                            # result buffer after delete and update
+deleted_line:                   .space  4                                                                                                                                                                                                                                                                                               # to store the number of line
+result:                         .word   0
+menue_space:                    .space  128
+test_name:                      .space  128
+menu_search_id:                 .space  128
+test_num:                       .space  128
+ID:                             .space  128
+append_test:                    .space  128
+Year:                           .space  128
+Month:                          .space  128
+test_result:                    .space  1024
+patientIDtemp:                  .space  128
+search_date:                    .space  128
+result_buffer:                  .space  1024                                                                                                                                                                                                                                                                                            # to store the search
+ID_testname_append:             .space  128
+Hgb_buffer:                     .space  2048
+BGT_buffer:                     .space  2048
+LDL_buffer:                     .space  2048
+BPT_buffer:                     .space  2048
+year1:                          .space  128
+year2:                          .space  128
+month1:                         .space  128
+month2:                         .space  128
+search_year:                    .space  128
+search_month:                   .space  128
+Diastolic:                      .space  1024
+Systolic:                       .space  1024
+tempbuffer:                     .space  4
+    # Menue texts
+menu_msg:                       .asciiz "\n           Welcome to our System\n"
+choice_1:                       .asciiz "1- Add new medical test\n"
+choice_2:                       .asciiz "2- Search for a test by patiant ID\n"
+choice_3:                       .asciiz "3- Searching for unnormal tests\n"
+choice_4:                       .asciiz "4- Average test value\n"
+choice_5:                       .asciiz "5- Update an existing test result\n"
+choice_6:                       .asciiz "6- Delete a test\n"
+choice_7:                       .asciiz "7- Exit from the program\n"
+print:                          .asciiz "********************************************\n"
+file_error_message:             .asciiz "Error: File not found or could not be opened.\n"
+menu_prompt:                    .asciiz "********************************************\n# Menu - Search by Patient ID\nEnter your choice:\n1. Retrieve all patient tests\n2. Retrieve all abnormal patient tests\n3. Retrieve all patient tests in a specific period\n4. Back\n********************************************\n"
+read_choice:                    .asciiz "Your choice: "
+no_such_choice:                 .asciiz "There is no choice with this number, try again\n"
+take_ID_msg:                    .asciiz "Enter the patiant ID: "
+take_test_name:                 .asciiz "********************************************\nSelect test name\n1- Hemoglobin (Hgb)\n2- Blood Glucose Test (BGT)\n3- Cholesterol Low-Density Lipoprotein(LDL)\n4- Blood Pressure Test (BPT)\nEnter the number of the test only\n********************************************\nYour choice: "
+take_year_msg:                  .asciiz "Enter the Year of the test : "
+take_month_msg:                 .asciiz "Enter the Month of the test : "
+take_test_result_msg:           .asciiz "Enter the test result : "
+not_integer_msg:                .asciiz "The Entered value must be an integer number, try again...\n"
+not_7digits_msg:                .asciiz "The ID must be 7 digits only, try again...\n"
+not_valid_year_msg:             .asciiz "Not valid year number, try again ...\n"
+not_integer_year:               .asciiz "The year must be an integer number, try again...\n"
+invalid_month_msg:              .asciiz "Not valid month number, try again ...\n"
+not_integer_month:              .asciiz "The month must be an integer number, try again...\n"
+not_4digits_msg:                .asciiz "The Year must be 4 digits only, try again...\n"
+exit_msg:                       .asciiz "             Exitting from our program\n             Greeting with SALWA & REBAL \n"
+invalid_test_result_msg:        .asciiz "Not valid test result, try again ...\n"
+patientIDSearch_msg:            .asciiz "Enter the patiant ID to search: "
+not_found_message:              .asciiz "Patient ID not found.\n"
+enter_deleted_line_msg:         .asciiz "Enter number of line want : "
+id_not_found_message:           .asciiz "There is no medical file for this patient\n"
+Systolic_msg:                   .asciiz "Enter Systolic Blood Pressure: "
+Diastolic_msg:                  .asciiz "Enter Diastolic Blood Pressure: "
+less_than_or_equal_zero_msg:    .asciiz "Error: The entered line number must be greater than 0.\n"
+greater_than_t3_msg:            .asciiz "Error: The entered line number exceeds the maximum line number.\n"
+Avg_Hgb:                        .asciiz "\nThe Average value for medical Test Hgb =  "
+Avg_BGT:                        .asciiz "\nThe Average value for medical Test BGT =  "
+Avg_LDL:                        .asciiz "\nThe Average value for medical Test LDL =  "
+Avg_BPT1:                       .asciiz "\nThe Average value for medical Test BPT (Systolic Blood Pressure) =  "
+Avg_BPT2:                       .asciiz "\nThe Average value for medical Test BPT (Diastolic Blood Pressure) =  "
+Hgb:                            .asciiz "Hgb"
+BGT:                            .asciiz "BGT"
+LDL:                            .asciiz "LDL"
+BPT:                            .asciiz "BPT"  
 #*****************************************************************************************
 .text
 .globl	main
@@ -283,14 +282,11 @@ take_testname:
 	la $a0, test_num	# Store the read number 
 	syscall
 	
-	# Check if the ID is integer
 	la $a1,test_num
 	jal check_integer	#call the function
 	
-	# If the returned value ($v1) is 1 then continue
 	beq $v1,1,GO1
 	
-	# If the returned value ($v1) is 0 then try again
 	li $v0,4
 	la $a0,not_integer_msg
 	syscall
@@ -300,7 +296,6 @@ GO1:
 	j check_test_name
 	
 continue_add3:
-	# Restore $ra from the stack
 	lw   $ra, 0($sp)
 	addi $sp, $sp, 4     # Deallocate space on the stack
  	jr $ra               # Return
@@ -319,15 +314,12 @@ take_year:
 	la $a0, Year	# Store the read number in year
 	syscall
 	
-	# Check if the year is integer
 	la $a0,Year
 	jal check_integer	#call the function
 	
-	# If the returned value ($v1) is 1 then continue
-	beq $v1,1,continue_add4
+	beq $v1,1,continue_add4		# If the returned value ($v1) is 1 then continue
 	
-	# If the returned value ($v1) is 0 then try again
-	li $v0,4
+	li $v0,4	# If the returned value ($v1) is 0 then try again
 	la $a0,not_integer_year
 	syscall
 	j take_year
@@ -347,13 +339,10 @@ continue_add4:
 	j take_year
 
 continue_add5:
-    	# Load the address of the string (Year) into $a0
-    	la $a0, Year           
+    	la $a0, Year           	# Load the address of the string (Year) into $a0    
     	jal remove_newline
-    	# Call the to_integer function to convert the string to an integer
-    	jal strToInt
-    	# Retrieve the integer value returned from to_integer
-    	move $t0, $v1
+    	jal strToInt    	# Call the to_integer function to convert the string to an integer
+    	move $t0, $v1    	# Retrieve the integer value returned from to_integer
     	# Check if the year is within an acceptable range (2000 to 2024)
     	li $t1, 2000            # Lower bound of the acceptable range
     	li $t2, 2024            # Upper bound of the acceptable range
@@ -417,44 +406,7 @@ continue_add8:
    	 lw   $ra, 0($sp)     # Restore $ra from the stack
     	 addi $sp, $sp, 4    # Deallocate space on the stack
    	 jr $ra               # Return
-##############################NOTE THAT T1 IS THE MONTH###########################################
 
-take_results:
-        # Allocate space on the stack for $ra
-    addi $sp, $sp, -4  
-    # Save $ra on the stack    
-    sw   $ra, 0($sp)
-    
-	la $a0,test_num
-	jal remove_newline
-	
-
-    lb $t0, ($a0)  
-    li $t1, 52      # ASCII value of '4'
-    beq $t0, $t1, Bpt_test
-
-    # If the comparison fails, jump to take_test
-    j take_test
-take_test:		
-	# Now lets take the test result for the patient 
-	li $v0,4
-	la $a0,take_test_result_msg
-	syscall
-	
-	li $v0,8	# System call code for reading a string
-	la $a0, test_result	# Store the read number in ID
-	syscall
-	
-	jal remove_newline
-	jal check_float
-
-	beq $v0, $zero, Invalid_test_result
-    # Restore $ra from the stack
-    lw   $ra, 0($sp)
-    # Deallocate space on the stack
-    addi $sp, $sp, 4
-    jr $ra               # Return
-#...........................................................................................
 Bpt_test:
 
 Systolic_label:    
@@ -487,13 +439,10 @@ jal initialize_to_zero
     jal check_float
     beq $v0, $zero, Invalid_Diastolic_result              
 
-    # Restore $ra from the stack
-    lw   $ra, 0($sp)
-    # Deallocate space on the stack
-    addi $sp, $sp, 4
+    lw   $ra, 0($sp)    # Restore $ra from the stack
+    addi $sp, $sp, 4    # Deallocate space on the stack
     jr $ra               # Return
 
- #-------------------------------------------------------------------------------------- 
 ###################### OPTION 2 #########################################################
 search_by_ID:
 
@@ -511,13 +460,11 @@ search1_1:
       la $a0,menu_prompt
       syscall
       
-      
         # Ask user to choose a choice
     	li $v0, 4	        # system call code for printing a string
     	la $a0, read_choice  # address of the message
     	syscall  
 
-   
          # Read a number from the user
     	li $v0, 8                # system call code for reading an integer
     	la $a0,menu_search_id
@@ -590,7 +537,6 @@ year1loop:
   beqz $t2, endyear  # If the byte loaded was 0, exit the loop
   j year1loop  # Repeat the loop
 
-
 endyear:  
 la $t0, Month   
 la $t1, month1
@@ -630,18 +576,14 @@ end2month:
 	
 la $a0,year1
 jal strToInt
-move $t0,$v1
-move $t1,$t0
-move $t2,$t1
+move $s3,$v1
 
 la $a0,year2
 jal strToInt
-move $t3,$v1
-move $t4,$t3
-move $t5,$t4 
-  
-beq $t2,$t5,checkmonth
-bgt $t2,$t5,swapyears
+move $s4,$v1
+
+beq $s3,$s4,checkmonth
+bgt $s3,$s4,swapyears
 
 j comple
 ########
@@ -662,20 +604,15 @@ swap_strings:
 j swapmonths
 
 checkmonth:
-
 la $a0,month1
 jal Month_to_Integer
-move $t1,$v1
-move $t2,$t1
-move $t3,$t2
+move $s3,$v1
 
 la $a0,month2
 jal Month_to_Integer
-move $t4,$v1
-move $t5,$t4
-move $t6,$t5
+move $s4,$v1
 
-bgt $t3,$t6,swapmonths
+bgt $s3,$s4,swapmonths
 j comple
 
 
@@ -708,14 +645,10 @@ pp:
 read_loop:
     lb $t0, 0($s0)               # Load a byte from buffer
     lb $t4, 0($t7)               # Load a byte from patientIDtemp
-
     beq $t0, $t4, continue_checking    # If characters match, continue checking
     beqz $t0, end                      # Check if end of buffer
-
     beq $t0, 10, next_line             # Check for end of line
-
     beq $t4, $zero, next_line         # Check for end of patient ID
-
     j next_line                         # If not, move to next line
 
 continue_checking:
@@ -759,9 +692,7 @@ show_all_test:
  show_test_normal:	 
 
      jal check_normality
-     
      bne $v1,1,print_line
-
      la $t7, patientIDtemp        # Load address of patientIDtemp
      j pp
 #.......................
@@ -802,27 +733,20 @@ check_year:
 
 la $a0,year1
 jal strToInt
-move $t0,$v1
-move $t1,$t0
-move $t2,$t1
+move $s3,$v1
 
 la $a0,year2
 jal strToInt
-move $t3,$v1
-move $t4,$t3
-move $t5,$t4
+move $s4,$v1
 
 la $a0,search_year
 jal strToInt
-move $t6,$v1
-move $t7,$t6
-move $t9,$t7
+move $s7,$v1
 
-
-beq $t2,$t9, g2 
-beq $t5,$t9, checkmonth2                      
-blt $t9,$t2,not_found   # check if t5 < $t1
-bgt $t9,$t5,not_found   # check if t5 > $t3
+beq $s3,$s7, g2 
+beq $s4,$s7, checkmonth2                      
+blt $s7,$s3,not_found   # 
+bgt $s7,$s4,not_found   # 
 
 found:
     li $t8,1
@@ -832,7 +756,7 @@ not_found:
     j pp
 
 g2:
- beq $t5,$t9, checkequalyear 
+ beq $s4,$s7, checkequalyear 
  j  checkmonth1  
 #......................................................                        
 checkmmonth:
@@ -849,23 +773,17 @@ addi $a0, $a0, 1
 lb $t1, 20($s1)    
 sb $t1, ($a0)  
 
-
 la $a0,month1
 jal Month_to_Integer
-move $t1,$v1
-move $t2,$t1
-move $t3,$t2
+move $s3,$v1
 
 la $a0,month2
 jal Month_to_Integer
-move $t4,$v1
-move $t5,$t4
-move $t6,$t5
+move $s4,$v1
 
 la $a0, search_month
 jal Month_to_Integer
-move $t7,$v1
-move $t9,$t7
+move $s7,$v1
 
 lw   $ra, 0($sp)
 addi $sp, $sp, 4
@@ -873,16 +791,16 @@ jr   $ra
 #----------------------------------------
 checkmonth1: # if the year of line = just year1
 jal checkmmonth
-blt $t9,$t3,not_found
+blt $s7,$s3,not_found
 j found
 checkmonth2: # if the year of line just = year2
 jal checkmmonth
-bgt $t9,$t6,not_found
+bgt $s7,$s4,not_found
 j found
 checkequalyear: # if the year of line = year1 $ year2
 jal checkmmonth
-blt $t9,$t3,not_found
-bgt $t9,$t6,not_found
+blt $s7,$s3,not_found   # 
+bgt $s7,$s4,not_found  
 j found
 
 ####################################
@@ -909,7 +827,7 @@ end_print_line:
 end:
     # If ID not found, print message
     beqz $t8, id_not_found
-    
+   
     la $a0, print
     li $v0, 4
     syscall
@@ -1179,8 +1097,6 @@ less_than_or_equal_zero:
     j choice_deleted_line# Example: Jump to exit_program  
 
 #################################################
-
-
 Find_delete_line:
 
     la $s0, search_buffer   
@@ -1231,7 +1147,6 @@ end_appendd:
     la $a0, print
     li $v0, 4
     syscall
-
 #----------------Now to choice if it is update or delete
     
 li $t7, '5'             # ASCII value of '5'
@@ -1251,8 +1166,6 @@ lb $t0, 0($a1)          # Load the first byte of the entered choice
 
 beq $t0, $t8, delete_line_process
 beq $t0, $t7, update_line_process
-    
-    
  #---------------------------------------------------------------------------
 delete_line_process:
   # s0 --> file_buffer
@@ -1345,9 +1258,6 @@ add_toDeleted_buffer:
 
 endAppend:
   j move_to_new_line             # Jump back to the reading loop
-
-
-    
 #-----------------------------------------------------------------
 update_line_process:
 
@@ -1916,7 +1826,38 @@ copyiid:
   jal print_buffer
   j saveToFile
   
-#------------------------------------------------------------------- 
+##############################NOTE THAT T1 IS THE MONTH###########################################
+take_results:
+    addi $sp, $sp, -4  
+    sw   $ra, 0($sp)
+    
+	la $a0,test_num
+	jal remove_newline
+	
+    lb $t0, ($a0)  
+    li $t1, 52      # ASCII value of '4'
+    beq $t0, $t1, Bpt_test
+
+    # If the comparison fails, jump to take_test
+    j take_test
+take_test:		
+	# Now lets take the test result for the patient 
+	li $v0,4
+	la $a0,take_test_result_msg
+	syscall
+	
+	li $v0,8	# System call code for reading a string
+	la $a0, test_result	# Store the read number in ID
+	syscall
+	
+	jal remove_newline
+	jal check_float
+
+	beq $v0, $zero, Invalid_test_result
+    lw   $ra, 0($sp)
+    addi $sp, $sp, 4
+    jr $ra               # Return  
+######################### Function append_test_name#####################
 append_test_name:
     move $s0, $a0    # Load the address of test_name into $s0
     move $s1, $a1    # Load the address of Hgb into $s1
@@ -1932,13 +1873,10 @@ copy_loop1:
         # Continue copying
         j copy_loop1
 
-end_copy_loop:    # End of loop
-
-     # Append null terminator to test_name
+end_copy_loop:    # End of loo
         sb $zero, 0($s0)
-       # Return from subroutine
     	jr $ra
-#---------------------------------------------------------------------------
+######################### Function check_float#####################
 # Function to check if the input string is a valid float
 # Input: $a0 - Pointer to the input string
 # Output: $v0 = 1 if the input string is a valid float, $v0 = 0 otherwise
@@ -2008,7 +1946,6 @@ do:
     li $t0, 48           # ASCII code for '0'
     sb $t0, ($a0)        # Store '0' after the decimal point
     addi $a0, $a0, 1     # Move pointer to the next character
-
     j end_check
 
 read_integer:
@@ -2020,7 +1957,6 @@ invalid_input:
     li $v0, 0            # Set $v0 to 0 (not a float)
     j end_check
     
-
 counter_check:    
     beq $t5, 2, counter_valid   # If counter is 2, it's valid
     beq $t5, 3, counter_valid   # If counter is 3, it's valid
@@ -2031,20 +1967,14 @@ counter_valid :
     beqz $t2,add_decimal_zero
        
 end_check:
-        # Restore $ra from the stack
     lw   $ra, 0($sp)
-    # Deallocate space on the stack
     addi $sp, $sp, 4
     jr $ra               # Return
-
-
-#---------------------------------------------------------------------------
+######################### Function check_integer#####################
 # This function take the address of a string in $a0
 # Return 1 in $v1 if it is integer, 0 if not integer
 check_integer:
-	# Allocate space on the stack for $ra
 	addi $sp, $sp, -4  
-	# Save $ra on the stack    
 	sw   $ra, 0($sp)  
 	
 	# Consider $v1 is the flag (1: yes, 0: no)
@@ -2061,22 +1991,15 @@ loop_check:	lb $t0,($a0)
 	not_integer:
 		li $v1,0
 	finish_check:
-		# Restore $ra from the stack
         		lw   $ra, 0($sp)
-        		# Deallocate space on the stack
         		addi $sp, $sp, 4
-        		#back to where it was last used
         		jr   $ra 
-#---------------------------------------------------------------------------
-
+######################### Function check_4digits#####################
 #  This function takes the address of the year in $a0 and checks
 # if the ID is 4 digits ($v1 = 1) or not ($v1 = 0)
 check_4digits:
-	# Allocate space on the stack for $ra
 	addi $sp, $sp, -4  
-	# Save $ra on the stack    
-	sw   $ra, 0($sp)  
-	
+	sw   $ra, 0($sp) 
 	# Counter initlized to zero
 	li $t1,0
 	# Consider $v1 is the flag (1: yes, 0: no)
@@ -2091,22 +2014,15 @@ loop_check22:	lb $t0,($a0)
 		beq $t1,4,end_check22
 		li $v1,0
 	end_check22:	
-		# Restore $ra from the stack
         		lw   $ra, 0($sp)
-        		# Deallocate space on the stack
         		addi $sp, $sp, 4
-        		#back to where it was last used
-        		jr   $ra 
-        		
-#---------------------------------------------------------------------------------------
+        		jr   $ra 	
+######################### Function check_7digits######################
 #  This function takes the address of the ID in $a0 and checks
 # if the ID is 7 digits ($v1 = 1) or not ($v1 = 0)
 check_7digits:
-	# Allocate space on the stack for $ra
 	addi $sp, $sp, -4  
-	# Save $ra on the stack    
 	sw   $ra, 0($sp)  
-	
 	# Counter initlized to zero
 	li $t1,0
 	# Consider $v1 is the flag (1: yes, 0: no)
@@ -2124,14 +2040,10 @@ loop_check2:
 		beq $t1,7,end_check11
 		li $v1,0
 	end_check11:	
-	# Restore the return address from the stack
 	lw $ra, ($sp) 
-	# Deallocate space on the stack        
 	addi $sp, $sp, 4      
-	# Return from the function
 	jr $ra            
-
-#------------------------------------strToInt-------------------------------------------------------------
+######################### Function strToInt######################
 strToInt:
 #to integer, its address stored in $a0
 #return the number in $v1
@@ -2151,68 +2063,55 @@ addiu $a0, $a0, 1 # $a0 = address of next char
 j L1 # loop back
 
 donne: 
-      	# Restore the return address from the stack
 	lw $ra, ($sp) 
-	# Deallocate space on the stack        
 	addi $sp, $sp, 4      
-	# Return from the function
     jr $ra 
-#------------------------Month_to_Integer-----------------------------------------
+######################### Function Month_to_Integer#######################
 Month_to_Integer:
 	#this is a function to convert an ascii number
 	#to integer, its address stored in $a0
 	#return the number in $v1
-	
 	addi $sp, $sp, -4
     	sw $ra, 0($sp)
     	
-	lb $t8,0($a0)
+	lb $t7,0($a0)
 	lb $t9,1($a0)
 	blt $t9,48,oneDigit
 	bgt $t9,57,oneDigit
 twoDigit:
-	addi $t8,$t8,-48
-	mul $t8,$t8,10
+	addi $t7,$t7,-48
+	mul $t7,$t7,10
 	addi $t9,$t9,-48
-	add $v1,$t8,$t9
+	add $v1,$t7,$t9
 	
   	move $t1, $v1
 
-  	# Restore the return address from the stack
 	lw $ra, ($sp) 
-	# Deallocate space on the stack        
 	addi $sp, $sp, 4      
-	# Return from the function
 	jr $ra 
 oneDigit:
-	addi $t8,$t8,-48
-	move $v1,$t8
+	addi $t7,$t7,-48
+	move $v1,$t7
     	# Add leading zero to the month string
     	li $t2, 48              # Load ASCII '0' into $t2
     	sb $t2, ($a0)           # Store '0' in the month string
     	addi $a0, $a0, 1        # Move to the next index in the month string
 
    	 # Convert the single digit to ASCII
-    	addi $t8, $t8, 48       # Convert the single digit to ASCII
-    	sb $t8, ($a0)           # Store the single digit in the month string
+    	addi $t7, $t7, 48       # Convert the single digit to ASCII
+    	sb $t7, ($a0)           # Store the single digit in the month string
     	addi $a0, $a0, 1        # Move to the next index in the month string
 
         move $t1, $v1
 	
-	# Restore the return address from the stack
 	lw $ra, ($sp) 
-	# Deallocate space on the stack        
 	addi $sp, $sp, 4      
-	# Return from the function
 	jr $ra 
-
-#----------------------------------------------------------------
+######################### initialize_to_zero########################
 initialize_to_zero:
-# Allocate space on the stack for $ra
      addi $sp, $sp, -4  
-# Save $ra on the stack    
      sw   $ra, 0($sp)   
-    # Initialize buffer to zero
+
     li $t0, 0               # Set $t0 to zero (ASCII value for null terminator)
     li $t1, 1024             # Number of bytes in the buffer
 
@@ -2223,54 +2122,37 @@ init_buffer_loop:
     addi $t1, $t1, -1       # Decrement counter
     bnez $t1, init_buffer_loop  # Continue loop if counter is not zero
     lw $ra, ($sp) 
-    # Deallocate space on the stack        
     addi $sp, $sp, 4      
-	# Return from the function
-	jr $ra 
-
-#----------------------------------------------------------------
+	jr $ra
+######################### remove_newline########################
 # This function takes a string that its address stored in $a0
 # and removes the new line char from the end of the string
 remove_newline:
-	# Allocate space on the stack for $ra
 	addi $sp, $sp, -4  
-	# Save $ra on the stack    
-	sw   $ra, 0($sp)   
-	    
+	sw   $ra, 0($sp)
 	addi $s5, $a0, 0   
-	# Initialize counter to 0    
 	addi $s6, $zero, 0     
 
 	loop6:
-	        # Load a byte from memory
 		lbu  $s7, ($s5)   
-		# If byte is newline character, exit loop     
 		beq  $s7, 10, done3  
-		# Increment address to next byte   
 		addi $s5, $s5, 1   
-		# Increment counter    
 		addi $s6, $s6, 1       
 		j    loop6
 
 	done3:
-	        # If the string is empty, exit function
 		beq  $s6, $zero, end4   	
-     		# Decrement counter to account for removed newline character
      		addi $s6, $s6, -1      
-        	        # Set $t2 to 0 to explicitly set null terminator
         		addi $s7, $zero, 0
-        		# Replace newline character with null terminator     
         		sb   $s7, ($s5)       
     	end4:
         	lw   $ra, 0($sp)
         	addi $sp, $sp, 4
         	jr   $ra 
- #------------------------------------------------------------------------------------		
+######################### Function copy_loop#########################
  # This code used to copy the buffer in a0 into a1        	
 copy_loop:
-	# Allocate space on the stack for $ra
 	addi $sp, $sp, -4  
-	# Save $ra on the stack    
 	sw   $ra, 0($sp)   
 start_copy:	    
     lb $t1, 0($a0)  # Load byte from ID buffer
@@ -2281,10 +2163,9 @@ start_copy:
     bne $t0, 7, start_copy# Check loop condition     	
     	# Restore $ra from the stack
         	lw   $ra, 0($sp)
-        	# Deallocate space on the stack
         	addi $sp, $sp, 4
         	jr   $ra #back to where it was last used.     	
- #------------------------------------------------------------------------------------			       	        	
+######################### Function Invalid_test_result########################
 Invalid_test_result:
     # Print error message for invalid test result
     li $v0, 4               # System call code for printing string
@@ -2308,8 +2189,6 @@ Invalid_Diastolic_result:
     
     j Diastolic_label        	
     
-    
-    
 id_not_found:
     # Print message indicating ID not found
     la $a0, id_not_found_message
@@ -2319,10 +2198,8 @@ id_not_found:
     la $a0, print
     li $v0, 4
     syscall
-    j menu
-        	
-
-#-----------------------function normal or nor normal------------------------------------------------------------
+    j menu    
+######################### Function normal or not normal###########################
 check_normality:
 	# Allocate space on the stack for $ra
 	addi $sp, $sp, -4  
@@ -2536,30 +2413,17 @@ not_normal:
     li $v1,0
     j end2_check11
 #--------
-    
 end2_check11:		
-
-		# Restore $ra from the stack
-        		lw   $ra, 0($sp)
-        		# Deallocate space on the stack
-        		addi $sp, $sp, 4
-        		#back to where it was last used
-        		jr   $ra 
-        		
-
+        		lw   $ra, 0($sp)		# Restore $ra from the stack
+        		addi $sp, $sp, 4        		# Deallocate space on the stack
+        		jr   $ra         		#back to where it was last used
 ######################### Function Average_test_value#############################
 Average_test_value:
-	# Allocate space on the stack for $ra
-	addi $sp, $sp, -4  
-	# Save $ra on the stack    
-	sw   $ra, 0($sp)  
-    # Arguments:
-    # $a0: Address of the buffer to check
-
+	addi $sp, $sp, -4  	# Allocate space on the stack for $ra
+	sw   $ra, 0($sp)  	# Save $ra on the stack    
     move $s0, $a0           # Set $s0 to the address of the buffer
     # Load the addresses of the buffers into $s0, $s1, $s2, $s3
     # (Assuming the addresses of the buffers are already loaded into $s0, $s1, $s2, $s3)
-
     # Check if any of the buffers is empty
 Check_Hgb_buffer: 
 li $v0,4
@@ -2598,9 +2462,7 @@ Check_BPT2_buffer:
     jal check_buffer_empty  # Check if BPT_buffer is empty
     beqz $v1, print_Avg_BPT2    # If Hgb_buffer is empty, print "avg Hgb=0" and return 0
     j Calculate_Avg_BPT2
-    
-        
-                
+                 
 print_Avg_Hgb :
     li $v0,4
     la $a0, Avg_Hgb
@@ -2693,8 +2555,7 @@ print_Avg_BPT1 :
     move $a0, $v1
     syscall
     j end_res
-            
-    
+             
 end_res:
 li $v0,11
 la $a0,10
@@ -2702,10 +2563,8 @@ syscall
 li $v0,4
 la $a0,print
 syscall 
-
 j menu
-    
-                   
+                     
 Calculate_Avg_Hgb:
     # Calculate average for Hgb_buffer
     la $s0, Hgb_buffer          # Load address of file_buffer
@@ -2762,64 +2621,43 @@ Calculate_Avg_BPT1:
     j End_Avg  
      
 End_Avg:
-
-    		# Restore $ra from the stack
-        		lw   $ra, 0($sp)
-        		# Deallocate space on the stack
-        		addi $sp, $sp, 4
-        		#back to where it was last used
-        		#back to where it was last used
-                           jr $ra                  # Return from subroutine
-                                                      
+        		lw   $ra, 0($sp)        		# Deallocate space on the stack
+        		addi $sp, $sp, 4        		#back to where it was last used
+                           jr $ra                  # Return from subroutine                                                      
 ############################# Function to check if a buffer is empty############
-
 check_buffer_empty:
-	# Allocate space on the stack for $ra
-	addi $sp, $sp, -4  
-	# Save $ra on the stack    
-	sw   $ra, 0($sp)  
+	addi $sp, $sp, -4  	# Allocate space on the stack for $ra
+	sw   $ra, 0($sp)  	# Save $ra on the stack    
 
-    # Arguments:
-    # $a0: Address of the buffer to check
-
-    move $s0, $a0           # Set $s0 to the address of the buffer
+   	 move $s0, $a0           # Set $s0 to the address of the buffer
 	 li $v1, 0
 	 
     lb $t0, ($s0)           # Load the first byte from the buffer
     beqz $t0, buffer_empty  # If it's null, the buffer is empty
 
-    # If the buffer is not empty, return 1 (non-empty)
-    li $v1, 1
+    li $v1, 1    # If the buffer is not empty, return 1 (non-empty)
     j end_result
     
 buffer_empty:
-    # Arguments:
     li $v1, 0
     end_result:
-    		# Restore $ra from the stack
-        		lw   $ra, 0($sp)
-        		# Deallocate space on the stack
-        		addi $sp, $sp, 4
-        		#back to where it was last used
+        		lw   $ra, 0($sp)        		# Deallocate space on the stack
+        		addi $sp, $sp, 4        		#back to where it was last used
         		jr   $ra 		
 ############################# Function sum the num for calculate the avg ############
 AVG_tests:
-    # Allocate space on the stack for $ra
-    addi $sp, $sp, -4  
-    # Save $ra on the stack    
-    sw   $ra, 0($sp)  
+    addi $sp, $sp, -4      # Allocate space on the stack for $ra
+    sw   $ra, 0($sp)      # Save $ra on the stack    
 
-    # Arguments:
     jal remove_dot_make_int
     
     move $t3, $v0   # Move integer result to $t3
     add $t8, $t8, $t3
     addi $t9, $t9, 1
     
-    # Restore $ra from the stack
-    lw   $ra, 0($sp)
-    # Deallocate space on the stack
-    addi $sp, $sp, 4
+
+    lw   $ra, 0($sp)    # Restore $ra from the stack
+    addi $sp, $sp, 4    # Deallocate space on the stack
 
     j go_to_next_line
 
@@ -2862,21 +2700,15 @@ end_sum_avg:
     li $t3, 10
     mtc1 $t3, $f4
     div.s $f10, $f0, $f4
-
-    # Return to the caller
-    jr $ra
-
-                           
- #--------------------------------------------------------------------
+    jr $ra    # Return to the calle
+#########################remove_dot_make_int###########################################
 # Convert a string containing a float number to an integer
 # Input: Address of the input string (in $a0)
 # Output: Integer result (in $v0)
 # Saved Registers: $ra, $k0
 remove_dot_make_int:
-    # Allocate space on the stack for $ra and $k0
-    addi $sp, $sp, -8  
-    # Save $ra and $k0 on the stack    
-    sw   $ra, 4($sp)  
+    addi $sp, $sp, -8      # Allocate space on the stack for $ra and $k0
+    sw   $ra, 4($sp)      # Save $ra and $k0 on the stack    
     sw   $k0, 0($sp)  
     
     move $t0, $s1  # Save the address of the input string
@@ -2914,28 +2746,17 @@ loop5:
     # Check if the character is a digit
     blt $t4, '0', not_digit
     bgt $t4, '9', not_digit
-    
-    # Convert character to integer
-    sub $t4, $t4, '0'
-    
-    # Multiply current result by 10 and add the digit
-    mul $t2, $t2, 10
+    sub $t4, $t4, '0'    # Convert character to integer
+    mul $t2, $t2, 10    # Multiply current result by 10 and add the digit
     add $t2, $t2, $t4
-    
-    # Check if decimal point encountered
-    beq $t3, 1, next
+    beq $t3, 1, next    # Check if decimal point encountered
     addi $t0, $t0, 1   # Increment index
     j loop5
     
 not_digit:
-    # Check if the character is a newline
-    beq $t4, 10, done
-    
-    # Check if the character is a comma
-    beq $t4, ',', done
-    
-    # Set the flag if decimal point encountered
-    beq $t4, '.', set_decimal
+    beq $t4, 10, done    # Check if the character is a newline
+    beq $t4, ',', done    # Check if the character is a comma
+    beq $t4, '.', set_decimal    # Set the flag if decimal point encountered
     
 next:
     addi $t1, $t1, 1   # Increment index
@@ -2951,41 +2772,31 @@ skip_dot:
     j loop5
 
 done:
-    # Store the integer result
-    move $v0, $t2
-    
-    # Restore $ra and $k0 from the stack
-    lw $k0, 0($sp)
+    move $v0, $t2    # Store the integer result
+    lw $k0, 0($sp)    # Restore $ra and $k0 from the stack
     lw $ra, 4($sp)
     addi $sp, $sp, 8
-    
-    # Return from subroutine
-    jr $ra	      
+    jr $ra	         # Return from subroutine 
 #########################Count the number of the digit ############################################
-
 # Count the number of digits until a comma is encountered
 # Input: Address of the input string (in $a0)
 # Output: Number of digits (in $k0)
 # Saved Registers: $ra, $t0, $t1
 countDigitsUntilComma:
-    # Save $ra, $t0, and $t1 on the stack
-    addi $sp, $sp, -12
+    addi $sp, $sp, -12    # Save $ra, $t0, and $t1 on the stack
     sw $ra, 8($sp)
     sw $t0, 4($sp)
     sw $t1, 0($sp)
-    
-    # Initialize counter to 0
-    li $k0, 0
-    
-        move $a0, $s1  # Save the address of the input string
-    # Loop through the characters of the string
-count_loop1:
+
+    li $k0, 0    # Initialize counter to 0
+    move $a0, $s1  # Save the address of the input string
+
+count_loop1:    # Loop through the characters of the string
     lb $t1, 23($a0)       # Load character into $t1
     beqz $t1, end_count1 # If it's null, end of string
     beq $t1, '.', end_count1 # If it's comma, end count
     blt $t1, '0', not_digit1 # If it's not a digit, skip
     bgt $t1, '9', not_digit1
-
     addi $k0, $k0, 1    # Increment digit counter
 
 not_digit1:
@@ -2993,23 +2804,16 @@ not_digit1:
     j count_loop1
 
 end_count1:
-    # Restore $ra, $t0, and $t1 from the stack
-    lw $ra, 8($sp)
+    lw $ra, 8($sp)    # Restore $ra, $t0, and $t1 from the stack
     lw $t0, 4($sp)
     lw $t1, 0($sp)
     addi $sp, $sp, 12
-    
-    # Return to the caller
-    jr $ra
-
-                         
+    jr $ra            # Return to the caller       
 #########################Function to load lines to the buffers#####################################
 Load_buffers:
-	# Allocate space on the stack for $ra
-	addi $sp, $sp, -4  
-	# Save $ra on the stack    
-	sw   $ra, 0($sp)  
-    # Arguments:
+	addi $sp, $sp, -4  	# Allocate space on the stack for $ra
+	sw   $ra, 0($sp)  	# Save $ra on the stack    
+
        # Set up pointers for search
     la $s0, file_buffer          # Load address of file_buffer
     move $s1, $s0                # Load address of result_buffer
@@ -3046,13 +2850,10 @@ j add_search_buffer2
 Load_BPT_buffer:
   la $s3, BPT_buffer    
 j add_search_buffer2
+####################### Function to add_search_buffer################################
+add_search_buffer2:
 
-
-   
-#--------------------   
-   add_search_buffer2:
-    # Find end of search_buffer
-find_end3:
+find_end3:    # Find end of search_buffer
     lb $t0, ($s3)
     beqz $t0, copy_id2  # If zero byte found, start appending new line
     addi $s3, $s3, 1
@@ -3068,19 +2869,17 @@ copy_id2:
     j copy_id2
 
 end_append2:
-    # Reset character counter for new line
-    li $t2, 0
+    li $t2, 0    # Reset character counter for new line
 
-    # Loop to find the next newline character
-    find_next_line:
+
+    find_next_line:    # Loop to find the next newline character
         lb $t0, ($s0)         # Load the byte at the current position
         beqz $t0, end3# If it's null, it's the end of the file_buffer
         beq $t0, 10, found_newline # If it's newline, we found the end of the current line
         addi $s0, $s0, 1      # Move to the next byte in the buffer
         j find_next_line      # Repeat the loop
 
-    # If we reach here, it means we found the next newline character
-    found_newline:
+    found_newline:    # If we reach here, it means we found the next newline character
     addi $s0, $s0, 1          # Move past the newline character
     move $s1, $s0              # Set the result_buffer pointer to the new line
 
@@ -3095,27 +2894,16 @@ end_append2:
     li $a2, 1024              # Load input length
     syscall
 
-    # After reading, return to the read_loop3
-    j read_loop3
-    
-    
-    
+    j read_loop3    # After reading, return to the read_loop3
+     
     end3:
-        		lw   $ra, 0($sp)
-        		# Deallocate space on the stack
+        		lw   $ra, 0($sp)        		# Deallocate space on the stack
         		addi $sp, $sp, 4
-        		#back to where it was last used
-        		#back to where it was last used
-                           jr $ra                  # Return from subroutine
-
-                           
+                           jr $ra                  # Return from subroutine                      
 ####################### Function to convert string to integer#################################
-
 convertStringToInt:
-    # Allocate space on the stack for $ra and $k0
-    addi $sp, $sp, -8  
-    # Save $ra and $k0 on the stack    
-    sw   $ra, 4($sp)  
+    addi $sp, $sp, -8      # Allocate space on the stack for $ra and $k0
+    sw   $ra, 4($sp)      # Save $ra and $k0 on the stack    
     sw   $k0, 0($sp)  
     
     move $t0, $a0   # Save the address of the input string
@@ -3127,46 +2915,32 @@ loop11:
     lb $t3, ($t0)   # Load character into $t3
     beqz $t3, doneee  # Exit loop if end of string
 
-    # Check if the character is a dot
-    beq $t3, '.', doneee
+    beq $t3, '.', doneee    # Check if the character is a dot
     beq $t3, 10, doneee
     beq $t3, ',', doneee
-    
-    # Check if the character is a digit
-    blt $t3, '0', not_digittt
+
+    blt $t3, '0', not_digittt    # Check if the character is a digit
     bgt $t3, '9', not_digittt
     
-    # Convert character to integer
-    sub $t3, $t3, '0'
-    
-    # Multiply current result by 10 and add the digit
-    mul $t2, $t2, 10
-    add $t2, $t2, $t3
-    
-    # Increment the counter for the number of digits
-    addi $k1, $k1, 1
+    sub $t3, $t3, '0'    # Convert character to integer
+    mul $t2, $t2, 10    # Multiply current result by 10 and add the digit
+    add $t2, $t2, $t3  
+    addi $k1, $k1, 1    # Increment the counter for the number of digits
     
 not_digittt:
     addi $t0, $t0, 1   # Move to the next character
     j loop11
 
 doneee:
-    # Store the integer result
-    sw $t2, result
+    sw $t2, result    # Store the integer result
     move $k0, $t4
-    
     lw $k0, 0($sp)
     lw $ra, 4($sp)
     addi $sp, $sp, 8
-    
-    # Return from subroutine
-    jr $ra	    
-             
- #------------------------------------------------------------------------------------			       	        		
-
+    jr $ra	        # Return from subroutine           
+####################### Function to print_buffer-###############################		       	        		
 print_buffer:  ### S0 hold the printed buffer
-# Allocate space on the stack for $ra
- addi $sp, $sp, -4  
+ addi $sp, $sp, -4  # Allocate space on the stack for $ra
  sw   $ra, 0($sp)  
     
 start_print:
@@ -3188,11 +2962,10 @@ end_print:
     lw   $ra, 0($sp)    # Restore $ra from the stack
     addi $sp, $sp, 4    # Deallocate space on the stack
     jr   $ra     #back to where it was last used     
- #------------------------------------------------------------------------------------			       	
+####################### Function to exit_program-##############################		       	        		
 exit_program:
     li $v0, 4             
     la $a0, exit_msg      
     syscall  
-    
     li $v0, 10       		# system call code for exit program             	
     syscall	
