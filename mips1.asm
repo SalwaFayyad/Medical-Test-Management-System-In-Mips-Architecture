@@ -1,11 +1,11 @@
 
 #         **********************************************************************
-#         *          Medical Test Management System in MIPS Assembly           *
-#         *                                                                    *
-#         *	          .........> Students <...... 		               *
-#         *		  SALWA FATYYAD	      1200430   	               *
-#         *		  REBAL ZABADE 	      1210162	                       *
-#         *                                                                    *
+#                   Medical Test Management System in MIPS Assembly         
+#                                                                           
+#         	          .........> Students <...... 		            
+#         		  SALWA FATYYAD	      1200430   	            
+#         		  REBAL ZABADE 	      1210162	                    
+#                                                                           
 #         **********************************************************************
 .data   
     # Here we put the file path as the following form
